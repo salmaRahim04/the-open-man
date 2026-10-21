@@ -133,6 +133,14 @@ def analyze_play(tr_play, desc, players):
 
 
 # ---------------------------------------------------------------- export
+def yardline_text(play):
+    """Line of scrimmage as a fan says it: 'own 30', 'CAR 39' or 'midfield'."""
+    n, side = play["yardlineNumber"], play["yardlineSide"]
+    if pd.isna(n) or int(n) == 50 or pd.isna(side):
+        return "midfield"
+    return f"own {int(n)}" if side == play["possessionTeam"] else f"{side} {int(n)}"
+
+
 def role_of(pff_role, team):
     if team == "football":
         return "ball"
@@ -185,6 +193,7 @@ def build(data_dir, game_id, play_id, meta):
         "offense": play["possessionTeam"], "defense": play["defensiveTeam"],
         "week": int(game["week"]), "down": int(play["down"]), "yardsToGo": int(play["yardsToGo"]),
         "quarter": int(play["quarter"]), "gameClock": play["gameClock"],
+        "yardline": yardline_text(play),
         "snapFrame": info["snap"], "throwFrame": info["throw"],
         "target": info["target"], "mostOpen": info["mostOpen"],
         "players": out_players,

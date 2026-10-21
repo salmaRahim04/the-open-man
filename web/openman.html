@@ -166,12 +166,15 @@
 
     .side-head { display: flex; justify-content: space-between; align-items: center; }
     .side-head .num { display: block; font-size: 34px; }
-    .side-head .sit2 { color: var(--muted); font-size: 14px; }
+    .side-head .sit2w { color: var(--muted); font-size: 14px; }
+    .m-only { display: none; }                   /* phone-only bits of text */
+    .side .sound, .legend .lg-eyes, .reveal-wide .desc { display: none; } /* not in the desktop design */
     .clock.big { position: static; width: 96px; height: 96px; }
     .clock.big .clockTxt { font-size: 15px; } .clock .since { font-family: var(--body); font-weight: 500; font-size: 6px; fill: var(--muted); }
     .side .pulse { margin: 0; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
     .side .freeze { padding: 0; }
     .side .freeze h2 { font-size: 32px; }
+    .side .freeze p { font-size: 13.5px; margin: 6px 0 14px; }
     .side .choices { grid-template-columns: 1fr; gap: 8px; }
     .side .choice { display: grid; grid-template-columns: 120px 1fr 64px; grid-template-areas: "num bar yds" "nm bar yds";
                     align-items: center; column-gap: 12px; padding: 10px 14px; }
@@ -180,7 +183,7 @@
     /* Result card: stamp, two cards side by side, story line, buttons */
     .reveal { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 22px 24px; }
     .reveal .stampbox { margin: 0; padding: 6px 0 20px; }
-    .reveal .stamp { font-size: 30px; border-width: 4px; padding: 8px 16px; }
+    .reveal .stamp { font-size: 36px; line-height: .95; border-width: 4px; padding: 8px 16px; max-width: 260px; }
     .reveal .kicker { right: 0; }
     .reveal .cards { grid-template-columns: 1fr 1fr; }
     .reveal .card .num { font-size: 28px; }
@@ -259,13 +262,13 @@
                 stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
         <text class="clockTxt" x="32" y="39" text-anchor="middle">0.0s</text>
       </svg>
-      <div class="legend" aria-hidden="true"><span><i class="lg-r"></i>Receiver, glow = space</span><span><i class="lg-d"></i>Defender</span><span><i class="lg-q"></i>QB</span><span><i class="lg-e"></i>QB's eyes</span></div>
+      <div class="legend" aria-hidden="true"><span><i class="lg-r"></i>Receiver, glow = space</span><span><i class="lg-d"></i>Defender</span><span><i class="lg-q"></i>QB</span><span class="lg-eyes"><i class="lg-e"></i>QB's eyes</span></div>
       <button class="cta" id="start">Watch the snap <span aria-hidden="true">→</span></button>
     </section>
 
     <aside class="side" aria-label="Play panel">
       <div class="side-head">
-        <div><span class="num dd"></span><span class="sit2"></span></div>
+        <div><span class="num dd"></span><span class="sit2w"></span></div>
         <svg class="clock big" viewBox="0 0 64 64" aria-label="Pocket clock: seconds since the snap">
           <circle cx="32" cy="32" r="27" fill="none" stroke="#1C3A2A" stroke-width="4"/>
           <circle class="clockArc" cx="32" cy="32" r="27" fill="none" stroke="#FF5A50" stroke-width="4"
@@ -283,7 +286,7 @@
       <!-- 3. The freeze -->
       <section class="freeze" id="freeze" hidden>
         <h2>Tap the light to throw</h2>
-        <p>The pocket is collapsing. Who would you throw to? Brighter light = more space.</p>
+        <p>The pocket is collapsing.<span class="m-only"> Who would you throw to?</span> Brighter light = more space.</p>
         <div class="choices" id="choices"></div>
       </section>
 
@@ -384,9 +387,10 @@
     if (xMax - xMin < 32) { const m = (xMax + xMin) / 2; xMin = m - 16; xMax = m + 16; }
     // Header text for this play
     document.getElementById("meta").innerHTML =
-      `<b>Week ${S.week}</b> · ${S.offense} vs ${S.defense} · ${ord(S.down)} &amp; ${S.yardsToGo} · Q${S.quarter} ${S.gameClock}`;
+      `<b>Week ${S.week}</b> · ${S.offense} vs ${S.defense}<span class="m-only"> · ${ord(S.down)} &amp; ${S.yardsToGo}</span> · Q${S.quarter} ${S.gameClock}`;
     document.querySelectorAll(".dd").forEach(e => e.textContent = `${ord(S.down)} & ${S.yardsToGo}`);
     document.querySelectorAll(".sit2").forEach(e => e.textContent = `${S.offense} ball vs ${S.defense}`);
+    document.querySelector(".sit2w").textContent = `${S.offense} ball vs ${S.defense}` + (S.yardline ? ` · ${S.yardline}` : "");
     updateProgress();
   }
   function updateProgress() {
@@ -516,7 +520,8 @@
     receivers.forEach(p => {
       const q = pos.get(p), X = sx(q.y), Y = sy(q.x) - 16 * ppx;
       const txt = p === brightest && (q.spotlight || 0) >= 5 ? `${label(p)} · ${q.spotlight.toFixed(1)} yds` : label(p);
-      const bright = (q.spotlight || 0) >= 5, w = ctx.measureText(txt).width + 14, h = 20;
+      const bright = window.innerWidth >= 900 ? p === brightest : (q.spotlight || 0) >= 5;
+      const w = ctx.measureText(txt).width + 14, h = 20;
       ctx.save(); ctx.translate(X, Y); ctx.scale(1, 1 / Math.cos(TILT));
       ctx.fillStyle = bright ? GOLD : "rgba(6,16,11,.85)";
       ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-w / 2, -h, w, h, 10) : ctx.rect(-w / 2, -h, w, h); ctx.fill();
@@ -635,20 +640,21 @@
     cards[1].querySelector("small").textContent = both ? "The open man was" : "The NFL QB threw to";
     document.getElementById("youNum").textContent = label(picked.p);
     document.getElementById("youName").textContent = picked.p.name;
-    // Both cards measured at the same moment: the freeze (what the player saw)
-    document.getElementById("youSp").textContent = `${picked.spotlight.toFixed(1)} yds at the freeze`;
+    // Both cards measured at the same moment: the throw
+    const atThrow = pl => (at(pl, S.throwFrame).spotlight || 0).toFixed(1);
+    document.getElementById("youSp").textContent = `${atThrow(picked.p)} yds at the throw`;
     document.getElementById("proNum").textContent = target ? label(target) : S.target.name;
     document.getElementById("proName").textContent = S.target.name;
-    const tSp = target ? (at(target, freezeF).spotlight || 0) : S.target.spotlight;
-    document.getElementById("proSp").textContent = `${tSp.toFixed(1)} yds at the freeze · ${RESULT[S.passResult] || S.passResult}`;
+    const tSp = target ? atThrow(target) : S.target.spotlight.toFixed(1);
+    document.getElementById("proSp").textContent = `${tSp} yds at the throw · ${RESULT[S.passResult] || S.passResult}`;
     if (both) { // second card shows the open man instead
-      document.getElementById("youSp").textContent += ` · ${RESULT[S.passResult] || S.passResult}`;
+      document.getElementById("youSp").textContent += ` · ${(RESULT[S.passResult] || S.passResult).toLowerCase()}`;
       document.getElementById("proNum").textContent = label(openNow);
       document.getElementById("proName").textContent = openNow.name;
-      document.getElementById("proSp").textContent = `${(at(openNow, freezeF).spotlight || 0).toFixed(1)} yds at the freeze`;
+      document.getElementById("proSp").textContent = `${atThrow(openNow)} yds at the throw`;
     }
     document.getElementById("desc").textContent = S.description;
-    const look = qbLookingAt(freezeF), open = openNow, openSp = (at(open, freezeF).spotlight || 0).toFixed(1);
+    const look = qbLookingAt(freezeF), open = openNow, openSp = atThrow(open);
     // Based on the QB's body orientation from tracking (the "QB's eyes" cone)
     const eyes = document.getElementById("eyesLine"), tj = target ? `#${target.jersey} ${target.position}` : S.target.name;
     eyes.hidden = !open || qbAngle(freezeF) == null;
@@ -662,7 +668,7 @@
     const facing = !look ? "At the freeze the QB wasn't facing any of his receivers."
       : look === open ? `At the freeze the QB was even facing him.`
       : `At the freeze the QB was facing <b>#${look.jersey} ${look.position}</b>.`;
-    eyes.innerHTML = story + facing;
+    eyes.innerHTML = story + `<span class="m-only">${facing}</span>`;
     const last = playIdx === PLAYS.length - 1;
     document.getElementById("another").innerHTML = last ? "See my card &rarr;" : "Next play &rarr;";
     const r = document.getElementById("reveal");
