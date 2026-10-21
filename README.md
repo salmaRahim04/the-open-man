@@ -7,7 +7,7 @@ receiver glows with a gold spotlight: the more space he has from the nearest
 defender, the bigger and brighter his light. The play freezes just before the
 throw and asks **"Who would you throw to?"**, then reveals what the real QB did.
 
-![The play frozen before the throw](docs/screenshot.jpg)
+![Demo: watch the play, tap the open man, see what the pro did](docs/demo.gif)
 
 **How it plays:** 5 real interceptions where the QB missed the open man.
 For each one you get a freeze, a pick, and a reveal ("The pro missed it",

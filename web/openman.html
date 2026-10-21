@@ -183,7 +183,7 @@
     /* Result card: stamp, two cards side by side, story line, buttons */
     .reveal { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 22px 24px; }
     .reveal .stampbox { margin: 0; padding: 6px 0 20px; }
-    .reveal .stamp { font-size: 36px; line-height: .95; border-width: 4px; padding: 8px 16px; max-width: 260px; }
+    .reveal .stamp { font-size: 36px; line-height: .95; border-width: 4px; padding: 8px 16px; max-width: 300px; text-wrap: balance; }
     .reveal .kicker { right: 0; }
     .reveal .cards { grid-template-columns: 1fr 1fr; }
     .reveal .card .num { font-size: 28px; }
@@ -219,7 +219,7 @@
     .vbars .n { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
     .vbars .b { width: 100%; background: var(--gold); border-radius: 6px 6px 0 0; }
     .vbars .x { position: absolute; bottom: -28px; color: var(--muted); font-size: 14px; }
-    .vbars-wrap { padding-bottom: 28px; }
+    .vbars-wrap > p { margin-top: 44px !important; } /* room for the x-axis labels */
     .hbars { display: grid; grid-template-columns: auto 1fr auto; gap: 9px 14px; align-items: center; font-size: 14px; }
     .hbars .nm { text-align: right; white-space: nowrap; }
     .hbars .b { height: 16px; background: var(--gold); border-radius: 3px; }
@@ -361,7 +361,9 @@
 
   // ---------- constants ----------
   const GOLD = "#FFC94A", RED = "#FF5A50", VIOLET = "#6F7CFF", DEF = "#020604", TURF = "#0E2A1C";
-  const MS_PER_FRAME = 100;          // tracking is 10 frames per second
+  // tracking is 10 frames per second; ?speed=0.4 slows the replay (handy for recording demos)
+  const SPEED = parseFloat(new URLSearchParams(location.search).get("speed")) || 1;
+  const MS_PER_FRAME = 100 / SPEED;
   const TILT = 40 * Math.PI / 180;   // must match CSS rotateX(40deg)
   const PERSP = 900;                 // must match CSS perspective: 900px
   const RESULT = { C: "Complete", I: "Incomplete", IN: "Intercepted", S: "Sack", R: "Scramble" };
