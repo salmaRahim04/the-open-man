@@ -125,6 +125,102 @@
   .insights img { width: 100%; border-radius: 12px; display: block; background: var(--panel); }
   .insights figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
   footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 18px 0 32px; color: var(--muted); font-size: 13px; }
+
+  /* =====================================================================
+     Layout shell. Phones (< 900px): one column, same order as before.
+     ===================================================================== */
+  .play { display: flex; flex-direction: column; }
+  .side, .reveal, .reveal-wide { display: contents; }
+  .stage { order: 1; } .pulse { order: 2; } .freeze { order: 3; }
+  .stampbox { order: 4; margin-top: 28px; } .cards { order: 5; } .ribbons-panel { order: 6; }
+  .eyes { order: 7; } .desc { order: 8; } .reveal .actions { order: 9; }
+  .side-head, .legend, .stat-row, .chart-row { display: none; }
+
+  /* =====================================================================
+     Desktop (>= 900px): wide shell, header pills, side panel, HTML charts
+     ===================================================================== */
+  @media (min-width: 900px) {
+    .wrap { max-width: 1360px; padding: 0 32px; }
+    .topbar { display: grid; grid-template-columns: 1fr auto auto; align-items: end; column-gap: 10px;
+              grid-template-areas: "brand brand brand" "h1 meta prog"; padding-bottom: 20px; }
+    .top { grid-area: brand; } .hero { display: contents; }
+    .hero h1 { grid-area: h1; font-size: 72px; margin-top: 18px; }
+    .hero h1 br { display: none; }
+    .meta, .progress span { border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 14px; margin: 0 0 10px; white-space: nowrap; }
+    .meta { grid-area: meta; } .progress { grid-area: prog; display: flex; gap: 10px; margin: 0; }
+    .progress #progScore { border-color: var(--gold); }
+
+    .play { display: flex; flex-direction: column; gap: 24px; }
+    .side { display: flex; flex-direction: column; gap: 18px; background: var(--panel); border: 1px solid var(--line);
+            border-radius: 20px; padding: 24px; }
+    .reveal, .reveal-wide { display: block; }
+    .stage, .pulse, .freeze, .stampbox, .cards, .ribbons-panel, .eyes, .desc, .reveal .actions { order: 0; }
+    .stage { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; padding: 0 0 56px; }
+    .stage .situation, .stage .clock { display: none; }
+    .legend { display: flex; gap: 18px; position: absolute; left: 24px; bottom: 18px; color: var(--muted); font-size: 13px; }
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .lg-r { background: var(--gold); } .lg-d { border: 2px solid var(--violet); background: var(--def); }
+    .lg-q { background: #fff; } .lg-e { background: rgba(234,242,236,.35); border-radius: 2px !important; }
+    .cta { bottom: 60px; }
+
+    .side-head { display: flex; justify-content: space-between; align-items: center; }
+    .side-head .num { display: block; font-size: 34px; }
+    .side-head .sit2 { color: var(--muted); font-size: 14px; }
+    .clock.big { position: static; width: 96px; height: 96px; }
+    .clock.big .clockTxt { font-size: 15px; } .clock .since { font-family: var(--body); font-weight: 500; font-size: 6px; fill: var(--muted); }
+    .side .pulse { margin: 0; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+    .side .freeze { padding: 0; }
+    .side .freeze h2 { font-size: 32px; }
+    .side .choices { grid-template-columns: 1fr; gap: 8px; }
+    .side .choice { display: grid; grid-template-columns: 120px 1fr 64px; grid-template-areas: "num bar yds" "nm bar yds";
+                    align-items: center; column-gap: 12px; padding: 10px 14px; }
+    .side .choice .num { grid-area: num; } .side .choice .nm { grid-area: nm; margin: 0; }
+    .side .choice .bar { grid-area: bar; } .side .choice .yds { grid-area: yds; margin: 0; text-align: right; color: var(--text); font-weight: 600; font-size: 14px; }
+    /* After the throw the panel swaps to the reveal */
+    .side:has(#reveal:not([hidden])) #freeze { display: none; }
+    .side .reveal { padding: 0; }
+    .side .stampbox { margin: 0; padding: 8px 0 18px; }
+    .side .stamp { font-size: 34px; border-width: 4px; padding: 8px 16px; }
+    .side .choice .of { display: none; }
+    .side .kicker { right: 0; }
+    .side .cards { grid-template-columns: 1fr; }
+    .side .eyes { margin-top: 12px; }
+    .reveal-wide .panel { margin-top: 0; padding: 22px 24px; }
+    .reveal-wide .panel-head h3 { font-size: 26px; }
+    #ribbons text { font-size: 14px; } #ribbons text.lbl { font-size: 20px; }
+    .reveal-wide .desc { margin-top: 12px; }
+
+    .insights { padding-top: 56px; }
+    .insights h2 { font-size: 44px; margin-bottom: 20px; }
+    .insights figure { display: none !important; }
+    .stat-row, .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .stat { display: flex; align-items: center; gap: 22px; background: #17170C; border: 1px solid #3A3418; border-radius: 20px; padding: 24px 28px; }
+    .stat .num { font-size: clamp(56px, 6vw, 84px); color: var(--gold); line-height: .9; white-space: nowrap; }
+    .stat em { font-style: normal; color: var(--muted); font-size: .45em; }
+    .stat p { margin: 0; color: var(--text); font-size: 16px; line-height: 1.4; }
+    .chart-card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px 28px; display: flex; flex-direction: column; }
+    .chart-card h3 { font-size: 24px; margin-bottom: 18px; }
+    .chart-card > p { color: var(--muted); font-size: 14px; margin: 18px 0 0; }
+    .vbars { display: flex; align-items: flex-end; gap: 14px; height: 300px; border-bottom: 1px solid var(--line); flex: 1; }
+    .vbars .col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
+    .vbars .pct { font-family: var(--head); font-weight: 800; font-size: 24px; }
+    .vbars .n { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .vbars .b { width: 100%; background: var(--gold); border-radius: 6px 6px 0 0; }
+    .vbars .x { position: absolute; bottom: -28px; color: var(--muted); font-size: 14px; }
+    .vbars-wrap { padding-bottom: 28px; }
+    .hbars { display: grid; grid-template-columns: auto 1fr auto; gap: 9px 14px; align-items: center; font-size: 14px; }
+    .hbars .nm { text-align: right; white-space: nowrap; }
+    .hbars .b { height: 16px; background: var(--gold); border-radius: 3px; }
+    .hbars .v { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  }
+  /* Large desktop (>= 1100px): field and panel side by side, ribbons full width */
+  @media (min-width: 1100px) {
+    .play { display: grid; grid-template-columns: 2fr 1fr; align-items: start; }
+    .stage { grid-column: 1; grid-row: 1; }
+    .side { grid-column: 2; grid-row: 1; }
+    .reveal-wide { grid-column: 1 / -1; }
+  }
   [hidden] { display: none !important; }
   @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } }
@@ -133,59 +229,81 @@
 <body>
 <div class="wrap">
 
-  <!-- 1. Header -->
-  <header class="top"><span class="logo" aria-hidden="true"></span><span class="brand">THE OPEN MAN</span></header>
-  <section class="hero">
-    <h1>See what the <br>QB saw.</h1>
-    <p class="meta" id="meta"></p>
-  </section>
-
-  <!-- Progress through the 5 plays -->
-  <div class="progress"><span id="progNum">Play 1 of 5</span><span id="progScore">Score 0/0</span></div>
-
-  <!-- 2. The stage -->
-  <section class="stage" aria-label="Play replay">
-    <div class="persp"><canvas id="field" role="img" aria-label="Animated replay of the play from behind the quarterback"></canvas></div>
-    <div class="situation"><span class="num" id="dd"></span><span id="sit2"></span></div>
-    <svg class="clock" viewBox="0 0 64 64" aria-label="Pocket clock: seconds since the snap">
-      <circle cx="32" cy="32" r="27" fill="#06100BCC" stroke="#1C3A2A" stroke-width="5"/>
-      <circle id="clockArc" cx="32" cy="32" r="27" fill="none" stroke="#FF5A50" stroke-width="5"
-              stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
-      <text id="clockTxt" x="32" y="39" text-anchor="middle">0.0s</text>
-    </svg>
-    <button class="cta" id="start">Watch the snap <span aria-hidden="true">→</span></button>
-  </section>
-  <div class="pulse">
-    <canvas id="pulse" aria-hidden="true"></canvas>
-    <div class="bpm" aria-live="off"><span id="bpm">62</span><small>QB heart rate</small></div>
-    <button class="sound" id="sound" aria-pressed="false">Sound off</button>
+  <!-- 1. Header (on desktop: brand row, then headline + play info pills) -->
+  <div class="topbar">
+    <header class="top"><span class="logo" aria-hidden="true"></span><span class="brand">THE OPEN MAN</span></header>
+    <section class="hero">
+      <h1>See what the <br>QB saw.</h1>
+      <p class="meta" id="meta"></p>
+    </section>
+    <!-- Progress through the 5 plays -->
+    <div class="progress"><span id="progNum">Play 1 of 5</span><span id="progScore">Score 0/0</span></div>
   </div>
 
-  <!-- 3. The freeze -->
-  <section class="freeze" id="freeze" hidden>
-    <h2>Tap the light to throw</h2>
-    <p>The pocket is collapsing. Who would you throw to? Brighter light = more space.</p>
-    <div class="choices" id="choices"></div>
-  </section>
+  <!-- 2-4. Field + side panel. On phones .side/.reveal "dissolve" (display: contents)
+       so the order stays: field, heartbeat, choices, stamp, cards, ribbons, text, buttons -->
+  <div class="play" id="play">
+    <section class="stage" aria-label="Play replay">
+      <div class="persp"><canvas id="field" role="img" aria-label="Animated replay of the play from behind the quarterback"></canvas></div>
+      <div class="situation"><span class="num dd"></span><span class="sit2"></span></div>
+      <svg class="clock" viewBox="0 0 64 64" aria-label="Pocket clock: seconds since the snap">
+        <circle cx="32" cy="32" r="27" fill="#06100BCC" stroke="#1C3A2A" stroke-width="5"/>
+        <circle class="clockArc" cx="32" cy="32" r="27" fill="none" stroke="#FF5A50" stroke-width="5"
+                stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
+        <text class="clockTxt" x="32" y="39" text-anchor="middle">0.0s</text>
+      </svg>
+      <div class="legend" aria-hidden="true"><span><i class="lg-r"></i>Receiver, glow = space</span><span><i class="lg-d"></i>Defender</span><span><i class="lg-q"></i>QB</span><span><i class="lg-e"></i>QB's eyes</span></div>
+      <button class="cta" id="start">Watch the snap <span aria-hidden="true">→</span></button>
+    </section>
 
-  <!-- 4. The reveal -->
-  <section class="reveal" id="reveal" hidden aria-live="polite">
-    <div class="stampbox"><div class="stamp" id="stamp"></div><span class="kicker" id="kicker" hidden>You found it</span></div>
-    <div class="cards">
-      <div class="card you"><small>You threw to</small><span class="num" id="youNum"></span><span class="who" id="youName"></span><div class="sp" id="youSp"></div></div>
-      <div class="card pro"><small>The NFL QB threw to</small><span class="num" id="proNum"></span><span class="who" id="proName"></span><div class="sp" id="proSp"></div></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h3>Light ribbons</h3><span>Thicker = more open</span></div>
-      <svg id="ribbons" role="img" aria-label="Space of each receiver from snap to throw"></svg>
-    </div>
-    <p class="eyes" id="eyesLine"></p>
-    <p class="desc" id="desc"></p>
-    <div class="actions">
-      <button class="btn" id="again">Watch again</button>
-      <button class="btn primary" id="another">Next play &rarr;</button>
-    </div>
-  </section>
+    <aside class="side" aria-label="Play panel">
+      <div class="side-head">
+        <div><span class="num dd"></span><span class="sit2"></span></div>
+        <svg class="clock big" viewBox="0 0 64 64" aria-label="Pocket clock: seconds since the snap">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="#1C3A2A" stroke-width="4"/>
+          <circle class="clockArc" cx="32" cy="32" r="27" fill="none" stroke="#FF5A50" stroke-width="4"
+                  stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
+          <text class="clockTxt" x="32" y="35" text-anchor="middle">0.0s</text>
+          <text x="32" y="45" text-anchor="middle" class="since">since snap</text>
+        </svg>
+      </div>
+      <div class="pulse">
+        <canvas id="pulse" aria-hidden="true"></canvas>
+        <div class="bpm" aria-live="off"><span id="bpm">62</span><small>QB heart rate</small></div>
+        <button class="sound" id="sound" aria-pressed="false">Sound off</button>
+      </div>
+
+      <!-- 3. The freeze -->
+      <section class="freeze" id="freeze" hidden>
+        <h2>Tap the light to throw</h2>
+        <p>The pocket is collapsing. Who would you throw to? Brighter light = more space.</p>
+        <div class="choices" id="choices"></div>
+      </section>
+
+      <!-- 4. The reveal (panel part) -->
+      <section class="reveal" id="reveal" hidden aria-live="polite">
+        <div class="stampbox"><div class="stamp" id="stamp"></div><span class="kicker" id="kicker" hidden>You found it</span></div>
+        <div class="cards">
+          <div class="card you"><small>You threw to</small><span class="num" id="youNum"></span><span class="who" id="youName"></span><div class="sp" id="youSp"></div></div>
+          <div class="card pro"><small>The NFL QB threw to</small><span class="num" id="proNum"></span><span class="who" id="proName"></span><div class="sp" id="proSp"></div></div>
+        </div>
+        <p class="eyes" id="eyesLine"></p>
+        <div class="actions">
+          <button class="btn" id="again">Watch again</button>
+          <button class="btn primary" id="another">Next play &rarr;</button>
+        </div>
+      </section>
+    </aside>
+
+    <!-- 4. The reveal (full-width part): light ribbons + play description -->
+    <section class="reveal-wide" id="revealWide" hidden>
+      <div class="panel ribbons-panel">
+        <div class="panel-head"><h3>Light ribbons</h3><span>Space of each receiver from snap to throw · thicker = more open</span></div>
+        <svg id="ribbons" role="img" aria-label="Space of each receiver from snap to throw"></svg>
+      </div>
+      <p class="desc" id="desc"></p>
+    </section>
+  </div>
 
   <!-- Share card, shown after the last play -->
   <section class="card-sec" id="card" hidden aria-live="polite">
@@ -200,6 +318,17 @@
   <!-- 5. Insights (hidden unless the chart images load) -->
   <section class="insights" id="insights" hidden>
     <h2>What the light says</h2>
+    <!-- Desktop: big stat tiles + HTML charts (crisp text). Phones: the PNG charts below. -->
+    <div class="stat-row">
+      <div class="stat"><span class="num">81% <em>vs</em> 23%</span><p>Completion rate when the target has 5+ yards of space vs 0-1 yard</p></div>
+      <div class="stat"><span class="num">10 of 10</span><p>Most-ignored open men are running backs. Open, but short of the line.</p></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-card"><h3>Light wins</h3><div class="vbars" id="chart1"></div>
+        <p>Completion rate by the target's space at the throw. Every extra yard of light pays.</p></div>
+      <div class="chart-card"><h3>Left in the light</h3><div class="hbars" id="chart2"></div>
+        <p>Times a player was the most open receiver at the throw and the ball went elsewhere (min 20 routes). D'Andre Swift is #32 in play 1.</p></div>
+    </div>
     <!-- Charts made by src/charts.py (run it to regenerate) -->
     <figure hidden><img src="../outputs/chart1_light_wins.png" alt="Bar chart: completion rate by the target's space at the throw, rising from 23% at 0-1 yards to 81% at 5+ yards">
       <figcaption><b>Light wins.</b> A target with 5+ yards of space is caught 81% of the time, versus 23% in tight coverage (0-1 yd).</figcaption></figure>
@@ -248,8 +377,8 @@
     // Header text for this play
     document.getElementById("meta").innerHTML =
       `<b>Week ${S.week}</b> · ${S.offense} vs ${S.defense} · ${ord(S.down)} &amp; ${S.yardsToGo} · Q${S.quarter} ${S.gameClock}`;
-    document.getElementById("dd").textContent = `${ord(S.down)} & ${S.yardsToGo}`;
-    document.getElementById("sit2").textContent = `${S.offense} ball vs ${S.defense}`;
+    document.querySelectorAll(".dd").forEach(e => e.textContent = `${ord(S.down)} & ${S.yardsToGo}`);
+    document.querySelectorAll(".sit2").forEach(e => e.textContent = `${S.offense} ball vs ${S.defense}`);
     updateProgress();
   }
   function updateProgress() {
@@ -276,7 +405,10 @@
     dpr = window.devicePixelRatio || 1;
     W = cv.parentElement.clientWidth;
     // Taller field on phones (like the mockup); the tilt flattens it again
+    const wide = window.innerWidth >= 900;
     H = Math.round(W * (xMax - xMin) / 53.3 * (W < 560 ? 1.45 : 0.9));
+    if (wide) H = Math.max(520, Math.round(W * (xMax - xMin) / 53.3 * 1.05)); // desktop: as big as possible
+    if (!document.getElementById("revealWide").hidden && picked) buildRibbons(); // keep ribbons at real size
     cv.style.height = H + "px";
     cv.width = W * dpr; cv.height = H * dpr;
     ppx = Math.min(1, W / 700) * 1.1;
@@ -384,9 +516,8 @@
     });
 
     // Pocket clock (seconds since the snap; full ring = 4 s)
-    const arc = document.getElementById("clockArc");
-    arc.setAttribute("stroke-dashoffset", 169.6 * (1 - Math.min(1, secs / 4)));
-    document.getElementById("clockTxt").textContent = secs.toFixed(1) + "s";
+    document.querySelectorAll(".clockArc").forEach(a => a.setAttribute("stroke-dashoffset", 169.6 * (1 - Math.min(1, secs / 4))));
+    document.querySelectorAll(".clockTxt").forEach(e => e.textContent = secs.toFixed(1) + "s");
   }
 
   // QB facing angle at time t (degrees), or null if not in the data
@@ -433,7 +564,7 @@
       const b = document.createElement("button");
       b.className = "choice";
       b.innerHTML = `<span class="num">${label(p)}</span><span class="nm">${p.name}</span>
-        <div class="bar"><i style="width:${Math.min(100, s * 10)}%"></i></div><div class="yds">${s.toFixed(1)} yds of space</div>`;
+        <div class="bar"><i style="width:${Math.min(100, s * 10)}%"></i></div><div class="yds">${s.toFixed(1)} yds<span class="of"> of space</span></div>`;
       b.setAttribute("aria-label", `Throw to ${p.name}, ${p.position}, ${s.toFixed(1)} yards of space`);
       b.onclick = () => pick(p);
       choicesEl.appendChild(b);
@@ -472,42 +603,54 @@
   // ---------- 4. The reveal ----------
   function showReveal() {
     const target = players.find(p => p.nflId === S.target.nflId);
-    // Three outcomes: you found the open man the pro missed / you made the pro's read / neither
-    const userFoundIt = picked.p === picked.openNow && S.target.nflId !== picked.openNow.nflId;
-    const sameRead = picked.p.nflId === S.target.nflId;
+    // Outcomes, judged on the brightest light at the freeze (what the player could see):
+    //  found the open man the QB missed / same (good) read / same mistake / both missed
+    const openNow = picked.openNow, targetWasOpen = S.target.nflId === openNow.nflId;
+    const pickedTarget = picked.p.nflId === S.target.nflId;
+    const userFoundIt = picked.p === openNow && !targetWasOpen;
+    const [txt, cls] = userFoundIt ? ["The pro missed it", ""]
+      : pickedTarget && targetWasOpen ? ["Same read as the pro", " gold"]
+      : pickedTarget ? ["You made the same mistake", ""]
+      : ["You both missed it", " muted"];
     const stamp = document.getElementById("stamp");
-    stamp.textContent = userFoundIt ? "The pro missed it" : sameRead ? "Same read as the pro" : "You both missed it";
-    stamp.className = "stamp" + (userFoundIt ? "" : sameRead ? " gold" : " muted");
+    stamp.textContent = txt;
+    stamp.className = "stamp" + cls;
     stamp.style.animation = "none"; void stamp.offsetWidth; stamp.style.animation = "";
     document.getElementById("kicker").hidden = !userFoundIt;
 
     document.getElementById("youNum").textContent = label(picked.p);
     document.getElementById("youName").textContent = picked.p.name;
-    document.getElementById("youSp").textContent = `${picked.spotlight.toFixed(1)} yds of space`;
+    // Both cards measured at the same moment: the freeze (what the player saw)
+    document.getElementById("youSp").textContent = `${picked.spotlight.toFixed(1)} yds at the freeze`;
     document.getElementById("proNum").textContent = target ? label(target) : S.target.name;
     document.getElementById("proName").textContent = S.target.name;
-    document.getElementById("proSp").textContent = `${S.target.spotlight.toFixed(1)} yds · ${RESULT[S.passResult] || S.passResult}`;
+    const tSp = target ? (at(target, freezeF).spotlight || 0) : S.target.spotlight;
+    document.getElementById("proSp").textContent = `${tSp.toFixed(1)} yds at the freeze · ${RESULT[S.passResult] || S.passResult}`;
     document.getElementById("desc").textContent = S.description;
-    const look = qbLookingAt(freezeF), open = players.find(p => p.nflId === S.mostOpen.nflId);
+    const look = qbLookingAt(freezeF), open = openNow, openSp = (at(open, freezeF).spotlight || 0).toFixed(1);
     // Based on the QB's body orientation from tracking (the "QB's eyes" cone)
     const eyes = document.getElementById("eyesLine"), tj = target ? `#${target.jersey} ${target.position}` : S.target.name;
     eyes.hidden = !open || qbAngle(freezeF) == null;
-    if (open && !look) eyes.innerHTML = `At the freeze the QB wasn't facing any of his receivers. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He threw to <b>${tj}</b>.`;
+    if (open && !look) eyes.innerHTML = `At the freeze the QB wasn't facing any of his receivers. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${openSp} yds at the freeze). He threw to <b>${tj}</b>.`;
     else if (look && open) eyes.innerHTML = look === open
-      ? `At the freeze the QB was facing <b class="g">#${open.jersey} ${open.position}</b>, the open man (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He still threw to <b>${tj}</b>.`
-      : `At the freeze the QB was facing <b>#${look.jersey} ${look.position}</b>. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He threw to <b>${tj}</b>.`;
+      ? `At the freeze the QB was facing <b class="g">#${open.jersey} ${open.position}</b>, the open man (${openSp} yds at the freeze). He threw to <b>${tj}</b>.`
+      : `At the freeze the QB was facing <b>#${look.jersey} ${look.position}</b>. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${openSp} yds at the freeze). He threw to <b>${tj}</b>.`;
     const last = playIdx === PLAYS.length - 1;
     document.getElementById("another").innerHTML = last ? "See my card &rarr;" : "Next play &rarr;";
-    buildRibbons();
     const r = document.getElementById("reveal");
-    r.hidden = false;
-    r.scrollIntoView({ behavior: "smooth", block: "start" });
+    r.hidden = false; document.getElementById("revealWide").hidden = false;
+    buildRibbons();
+    // Desktop: the panel swaps in place, keep the field in view. Phones: scroll to the stamp.
+    if (window.innerWidth >= 1100) document.getElementById("play").scrollIntoView({ behavior: "smooth", block: "start" });
+    else document.getElementById("stamp").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   // Light ribbons: one per receiver, x = time since snap, thickness = spotlight
   function buildRibbons() {
     const svg = document.getElementById("ribbons");
-    const VW = 480, rowH = 50, left = 56, right = 470, top = 14; // small viewBox = readable text on phones
+    // Phones: small fixed viewBox (scales up = readable). Desktop: viewBox = real width, taller rows.
+    const cw = svg.clientWidth || 480, wide = window.innerWidth >= 900;
+    const VW = wide ? cw : 480, rowH = wide ? 72 : 50, left = wide ? 110 : 56, right = VW - 10, top = 14, k = wide ? 2.6 : 1.9;
     const VH = top + receivers.length * rowH + 30;
     svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`);
     const f0 = S.snapFrame, f1 = lastF;
@@ -516,14 +659,14 @@
     receivers.forEach((p, i) => {
       const cy = top + i * rowH + rowH / 2, isT = p.nflId === S.target.nflId;
       const pts = [];
-      for (let f = f0; f <= f1; f++) { const q = p.byF[f]; if (q) pts.push([tx(f), Math.min(12, q.spotlight || 0) * 1.9 + 1]); }
+      for (let f = f0; f <= f1; f++) { const q = p.byF[f]; if (q) pts.push([tx(f), Math.min(12, q.spotlight || 0) * k + 1]); }
       const d = "M" + pts.map(([x, h]) => `${x.toFixed(1)},${(cy - h).toFixed(1)}`).join("L") +
                 "L" + pts.reverse().map(([x, h]) => `${x.toFixed(1)},${(cy + h).toFixed(1)}`).join("L") + "Z";
       const isPick = p === picked.p;
-      html += `<path d="${d}" fill="${GOLD}" fill-opacity="${isPick || p.nflId === S.mostOpen.nflId ? .9 : .45}"
+      html += `<path d="${d}" fill="${GOLD}" fill-opacity="${isPick || p === picked.openNow ? .9 : .45}"
                ${isT ? `stroke="${RED}" stroke-width="2"` : ""}/>`;
-      html += `<text class="lbl" x="0" y="${cy + (isT ? 0 : 5)}">#${p.jersey}</text>`;
-      if (isT) html += `<text x="0" y="${cy + 14}" style="fill:${RED};font-size:11px">QB target</text>`;
+      html += `<text class="lbl" x="0" y="${cy + (isT ? 0 : 5)}">#${p.jersey}${wide ? " " + p.position : ""}</text>`;
+      if (isT) html += `<text x="0" y="${cy + (wide ? 18 : 14)}" style="fill:${RED};font-size:${wide ? 13 : 11}px">QB target</text>`;
     });
     const xt = tx(S.throwFrame), secs = ((S.throwFrame - S.snapFrame) / 10).toFixed(1);
     html += `<line x1="${xt}" x2="${xt}" y1="4" y2="${VH - 24}" stroke="${RED}" stroke-width="1.5" stroke-dasharray="4 4"/>`;
@@ -548,7 +691,7 @@
   };
   function resetForPlay(i) {
     picked = null;
-    ["freeze", "reveal", "card"].forEach(id => document.getElementById(id).hidden = true);
+    ["freeze", "reveal", "revealWide", "card"].forEach(id => document.getElementById(id).hidden = true);
     loadPlay(i); resize(); cur = firstF; draw(cur);
     startBtn.hidden = true;
     document.querySelector(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -625,7 +768,7 @@
     const vision = Math.round(100 * results.reduce((a, r) => a + r.share, 0) / Math.max(1, n));
     const avgS = (results.reduce((a, r) => a + r.decisionMs, 0) / Math.max(1, n) / 1000).toFixed(1);
     drawCard({ n, found, outRead, vision, avgS });
-    ["freeze", "reveal"].forEach(id => document.getElementById(id).hidden = true);
+    ["freeze", "reveal", "revealWide"].forEach(id => document.getElementById(id).hidden = true);
     const c = document.getElementById("card"); c.hidden = false;
     requestAnimationFrame(() => c.scrollIntoView({ behavior: "smooth", block: "start" })); // after layout settles
   }
@@ -677,6 +820,18 @@
     resetForPlay(0);
     play(freezeF, () => { cur = freezeF; showFreeze(); });
   };
+
+  // ---------- 5. Desktop charts (same numbers as outputs/chart*.png, from src/charts.py) ----------
+  const LIGHT_WINS = [["0-1 yd", 23, 590], ["1-2", 48, 1457], ["2-3", 59, 1114], ["3-5", 71, 1814], ["5+ yds", 81, 2116]];
+  const LEFT_IN_LIGHT = [["D'Andre Swift", 96, 127], ["Darrell Henderson", 86, 97], ["Leonard Fournette", 84, 104],
+    ["Darrel Williams", 84, 84], ["Najee Harris", 74, 102], ["Ezekiel Elliott", 74, 86], ["Mike Davis", 73, 99],
+    ["Melvin Gordon", 70, 80], ["Austin Ekeler", 63, 80], ["James Robinson", 62, 81]];
+  document.getElementById("chart1").innerHTML = LIGHT_WINS.map(([x, pct, n], i) =>
+    `<div class="col"><span class="pct">${pct}%</span><span class="n">${n.toLocaleString("en-US")} plays</span>
+     <div class="b" style="height:${pct * .75}%;opacity:${.55 + i * .11}"></div><span class="x">${x}</span></div>`).join("");
+  document.getElementById("chart1").parentElement.classList.add("vbars-wrap");
+  document.getElementById("chart2").innerHTML = LEFT_IN_LIGHT.map(([nm, ign, tot]) =>
+    `<span class="nm">${nm} (RB)</span><div class="b" style="width:${ign / 96 * 100}%"></div><span class="v">${ign} of ${tot}</span>`).join("");
 
   loadPlay(0);
   cur = firstF;
