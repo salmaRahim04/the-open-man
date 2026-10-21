@@ -83,6 +83,7 @@
            border: 6px solid var(--red); color: var(--red); border-radius: 10px; transform: rotate(-7deg);
            animation: slam .45s cubic-bezier(.2, 1.6, .4, 1) both; }
   .stamp.gold { border-color: var(--gold); color: var(--gold); }
+  .stamp.muted { border-color: var(--muted); color: var(--muted); }
   .kicker { position: absolute; top: 0; right: 4%; background: var(--gold); color: #1B1300; font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 999px; }
   @keyframes slam { from { transform: rotate(-7deg) scale(2.2); opacity: 0; } to { transform: rotate(-7deg) scale(1); opacity: 1; } }
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -108,6 +109,15 @@
   .btn.primary { background: var(--gold); color: #1B1300; border-color: var(--gold); }
   .btn:disabled { opacity: .45; cursor: not-allowed; }
 
+  .progress { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; margin-top: 18px; }
+  .progress #progScore { color: var(--gold); font-weight: 600; }
+  .eyes { margin: 14px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); font-size: 15px; line-height: 1.5; }
+  .eyes b { color: var(--text); } .eyes b.g { color: var(--gold); }
+  .card-sec { padding: 28px 0 8px; text-align: center; }
+  .card-top { color: var(--muted); margin: 0 0 14px; }
+  #shareCanvas { width: 100%; max-width: 420px; height: auto; display: block; margin: 0 auto; border-radius: 18px; }
+  .card-sec .actions { max-width: 420px; margin: 18px auto 0; }
+
   /* ---------- 5. Insights + footer ---------- */
   .insights { padding: 40px 0 0; }
   .insights h2 { font-size: 30px; margin-bottom: 14px; }
@@ -129,6 +139,9 @@
     <h1>See what the <br>QB saw.</h1>
     <p class="meta" id="meta"></p>
   </section>
+
+  <!-- Progress through the 5 plays -->
+  <div class="progress"><span id="progNum">Play 1 of 5</span><span id="progScore">Score 0/0</span></div>
 
   <!-- 2. The stage -->
   <section class="stage" aria-label="Play replay">
@@ -166,10 +179,21 @@
       <div class="panel-head"><h3>Light ribbons</h3><span>Thicker = more open</span></div>
       <svg id="ribbons" role="img" aria-label="Space of each receiver from snap to throw"></svg>
     </div>
+    <p class="eyes" id="eyesLine"></p>
     <p class="desc" id="desc"></p>
     <div class="actions">
-      <button class="btn primary" id="again">Watch again</button>
-      <button class="btn" id="another" disabled>Try another play · soon</button>
+      <button class="btn" id="again">Watch again</button>
+      <button class="btn primary" id="another">Next play &rarr;</button>
+    </div>
+  </section>
+
+  <!-- Share card, shown after the last play -->
+  <section class="card-sec" id="card" hidden aria-live="polite">
+    <p class="card-top">All throws done</p>
+    <canvas id="shareCanvas" role="img" aria-label="Your Open Man score card"></canvas>
+    <div class="actions">
+      <button class="btn" id="restart">Play again</button>
+      <button class="btn primary" id="download">Download my card</button>
     </div>
   </section>
 
@@ -192,8 +216,8 @@
 <script>
 (function () {
   "use strict";
-  const S = window.SHOWCASE;
-  if (!S) { document.getElementById("meta").textContent = "showcase.js not found: run src/export_play.py"; return; }
+  const PLAYS = window.SHOWCASES || (window.SHOWCASE ? [window.SHOWCASE] : []);
+  if (!PLAYS.length) { document.getElementById("meta").textContent = "showcase.js not found: run src/export_play.py"; return; }
 
   // ---------- constants ----------
   const GOLD = "#FFC94A", RED = "#FF5A50", VIOLET = "#6F7CFF", DEF = "#020604", TURF = "#0E2A1C";
@@ -202,20 +226,37 @@
   const PERSP = 900;                 // must match CSS perspective: 900px
   const RESULT = { C: "Complete", I: "Incomplete", IN: "Intercepted", S: "Sack", R: "Scramble" };
 
-  // ---------- prepare data ----------
-  const players = S.players;
-  const firstF = Math.min(...players.map(p => p.frames[0].f));
-  const lastF = Math.max(...players.map(p => p.frames[p.frames.length - 1].f));
-  const freezeF = S.throwFrame - 3;
-  const receivers = players.filter(p => p.role === "receiver");
-  const ball = players.find(p => p.role === "ball");
-  const losX = (ball && (ball.frames.find(f => f.f === S.snapFrame) || ball.frames[0]).x) || 0;
-  players.forEach(p => { p.byF = {}; p.frames.forEach(fr => p.byF[fr.f] = fr); });
+  // ---------- current play (loadPlay swaps these) ----------
+  let S, players, firstF, lastF, freezeF, receivers, ball, qb, losX, xMin, xMax;
+  let playIdx = 0;
+  const results = []; // one entry per answered play: {found, outRead, share, decisionMs}
 
-  // Camera window (in yards): downfield range that covers everyone, full field width
-  const allX = players.flatMap(p => p.frames.map(f => f.x));
-  let xMin = Math.min(...allX) - 4, xMax = Math.max(...allX) + 4;
-  if (xMax - xMin < 32) { const m = (xMax + xMin) / 2; xMin = m - 16; xMax = m + 16; }
+  function loadPlay(i) {
+    playIdx = i; S = PLAYS[i]; players = S.players;
+    firstF = Math.min(...players.map(p => p.frames[0].f));
+    lastF = Math.max(...players.map(p => p.frames[p.frames.length - 1].f));
+    freezeF = S.throwFrame - 3;
+    receivers = players.filter(p => p.role === "receiver");
+    ball = players.find(p => p.role === "ball");
+    qb = players.find(p => p.role === "qb");
+    losX = (ball && (ball.frames.find(f => f.f === S.snapFrame) || ball.frames[0]).x) || 0;
+    players.forEach(p => { p.byF = {}; p.frames.forEach(fr => p.byF[fr.f] = fr); });
+    // Camera window (in yards): downfield range that covers everyone, full field width
+    const allX = players.flatMap(p => p.frames.map(f => f.x));
+    xMin = Math.min(...allX) - 4; xMax = Math.max(...allX) + 4;
+    if (xMax - xMin < 32) { const m = (xMax + xMin) / 2; xMin = m - 16; xMax = m + 16; }
+    // Header text for this play
+    document.getElementById("meta").innerHTML =
+      `<b>Week ${S.week}</b> · ${S.offense} vs ${S.defense} · ${ord(S.down)} &amp; ${S.yardsToGo} · Q${S.quarter} ${S.gameClock}`;
+    document.getElementById("dd").textContent = `${ord(S.down)} & ${S.yardsToGo}`;
+    document.getElementById("sit2").textContent = `${S.offense} ball vs ${S.defense}`;
+    updateProgress();
+  }
+  function updateProgress() {
+    const found = results.filter(r => r.found).length;
+    document.getElementById("progNum").textContent = `Play ${playIdx + 1} of ${PLAYS.length}`;
+    document.getElementById("progScore").textContent = results.length ? `Score ${found}/${results.length}` : "Score 0/0";
+  }
 
   // Position of a player at a fractional frame (linear interpolation)
   function at(p, t) {
@@ -226,12 +267,6 @@
   }
   const label = p => `#${p.jersey} ${p.position}`;
   const ord = n => n + (["th", "st", "nd", "rd"][n] || "th");
-
-  // ---------- header text ----------
-  document.getElementById("meta").innerHTML =
-    `<b>Week ${S.week}</b> · ${S.offense} vs ${S.defense} · ${ord(S.down)} &amp; ${S.yardsToGo} · Q${S.quarter} ${S.gameClock}`;
-  document.getElementById("dd").textContent = `${ord(S.down)} & ${S.yardsToGo}`;
-  document.getElementById("sit2").textContent = `${S.offense} ball vs ${S.defense}`;
 
   // ---------- canvas setup ----------
   const cv = document.getElementById("field"), ctx = cv.getContext("2d");
@@ -278,6 +313,24 @@
       ctx.stroke();
     });
     ctx.setLineDash([]);
+
+    // QB vision cone: where the QB is facing (tracking "o": 0 deg = +y, 90 = downfield)
+    const ang = qbAngle(t);
+    if (ang != null) {
+      const q = pos.get(qb), L = 24, half = 22 * Math.PI / 180, a0 = ang * Math.PI / 180;
+      const X0 = sx(q.y), Y0 = sy(q.x);
+      const g = ctx.createRadialGradient(X0, Y0, 0, X0, Y0, Math.hypot(W, H) * .45);
+      g.addColorStop(0, "rgba(234,242,236,.20)"); g.addColorStop(1, "rgba(234,242,236,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X0, Y0);
+      for (let k = -6; k <= 6; k++) { const a = a0 + half * k / 6; ctx.lineTo(sx(q.y + L * Math.cos(a)), sy(q.x + L * Math.sin(a))); }
+      ctx.closePath(); ctx.fill();
+      if (t >= freezeF - .01) { // name the cone once the play is frozen
+        const tipX = sx(q.y + 12 * Math.cos(a0)), tipY = sy(q.x + 12 * Math.sin(a0));
+        ctx.save(); ctx.translate(tipX, tipY); ctx.scale(1, 1 / Math.cos(TILT));
+        ctx.font = `600 ${Math.round(12 * Math.max(ppx, .85))}px Inter, sans-serif`; ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(234,242,236,.75)"; ctx.fillText("QB's eyes", 0, 0); ctx.restore();
+      }
+    }
 
     // Receiver spotlights: additive radial gold glow, radius = 6 + spotlight*6 px
     ctx.globalCompositeOperation = "lighter";
@@ -336,6 +389,23 @@
     document.getElementById("clockTxt").textContent = secs.toFixed(1) + "s";
   }
 
+  // QB facing angle at time t (degrees), or null if not in the data
+  function qbAngle(t) {
+    if (!qb) return null;
+    const f = Math.min(Math.max(Math.round(t), qb.frames[0].f), qb.frames[qb.frames.length - 1].f);
+    return qb.byF[f] && qb.byF[f].o != null ? qb.byF[f].o : null;
+  }
+  // Receiver closest to where the QB is facing at time t
+  function qbLookingAt(t) {
+    const a = qbAngle(t); if (a == null) return null;
+    const q = at(qb, t); let best = null, bd = 1e9;
+    receivers.forEach(p => {
+      const r = at(p, t), b = Math.atan2(r.x - q.x, r.y - q.y) * 180 / Math.PI; // same convention as "o"
+      const d = Math.abs(((b - a + 540) % 360) - 180); if (d < bd) { bd = d; best = p; }
+    });
+    return best;
+  }
+
   // ---------- playback ----------
   let cur = firstF, playing = false, stopAt = lastF, lastTs = 0, onStop = null;
   function play(to, done) {
@@ -352,9 +422,10 @@
   }
 
   // ---------- 3. The freeze ----------
-  let picked = null;
+  let picked = null, frozeAt = 0;
   const choicesEl = document.getElementById("choices");
   function showFreeze() {
+    frozeAt = performance.now();
     document.getElementById("freeze").hidden = false;
     choicesEl.innerHTML = "";
     receivers.forEach(p => {
@@ -373,6 +444,14 @@
   function pick(p) {
     if (picked || playing) return;
     picked = { p, spotlight: at(p, cur).spotlight || 0 };
+    // Score against what the player could SEE: the brightest receiver at the freeze
+    const openNow = receivers.reduce((a, r) => (at(r, cur).spotlight || 0) > (at(a, cur).spotlight || 0) ? r : a);
+    const best = at(openNow, cur).spotlight || 0;
+    const found = p === openNow;
+    picked.openNow = openNow;
+    results.push({ found, outRead: found && S.target.nflId !== openNow.nflId,
+                   share: best ? picked.spotlight / best : 0, decisionMs: performance.now() - frozeAt });
+    updateProgress();
     [...choicesEl.children].forEach((b, i) => { b.disabled = true; if (receivers[i] === p) b.classList.add("picked"); });
     play(lastF, showReveal);
   }
@@ -393,10 +472,12 @@
   // ---------- 4. The reveal ----------
   function showReveal() {
     const target = players.find(p => p.nflId === S.target.nflId);
-    const userFoundIt = picked.p.nflId === S.mostOpen.nflId && S.target.nflId !== S.mostOpen.nflId;
+    // Three outcomes: you found the open man the pro missed / you made the pro's read / neither
+    const userFoundIt = picked.p === picked.openNow && S.target.nflId !== picked.openNow.nflId;
+    const sameRead = picked.p.nflId === S.target.nflId;
     const stamp = document.getElementById("stamp");
-    stamp.textContent = userFoundIt ? "The pro missed it" : "Same read as the pro";
-    stamp.className = "stamp" + (userFoundIt ? "" : " gold");
+    stamp.textContent = userFoundIt ? "The pro missed it" : sameRead ? "Same read as the pro" : "You both missed it";
+    stamp.className = "stamp" + (userFoundIt ? "" : sameRead ? " gold" : " muted");
     stamp.style.animation = "none"; void stamp.offsetWidth; stamp.style.animation = "";
     document.getElementById("kicker").hidden = !userFoundIt;
 
@@ -407,6 +488,15 @@
     document.getElementById("proName").textContent = S.target.name;
     document.getElementById("proSp").textContent = `${S.target.spotlight.toFixed(1)} yds · ${RESULT[S.passResult] || S.passResult}`;
     document.getElementById("desc").textContent = S.description;
+    const look = qbLookingAt(freezeF), open = players.find(p => p.nflId === S.mostOpen.nflId);
+    // Based on the QB's body orientation from tracking (the "QB's eyes" cone)
+    const eyes = document.getElementById("eyesLine"), tj = target ? `#${target.jersey} ${target.position}` : S.target.name;
+    eyes.hidden = !(look && open);
+    if (look && open) eyes.innerHTML = look === open
+      ? `At the freeze the QB was facing <b class="g">#${open.jersey} ${open.position}</b>, the open man (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He still threw to <b>${tj}</b>.`
+      : `At the freeze the QB was facing <b>#${look.jersey} ${look.position}</b>. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He threw to <b>${tj}</b>.`;
+    const last = playIdx === PLAYS.length - 1;
+    document.getElementById("another").innerHTML = last ? "See my card &rarr;" : "Next play &rarr;";
     buildRibbons();
     const r = document.getElementById("reveal");
     r.hidden = false;
@@ -448,6 +538,21 @@
     cur = firstF;
     play(freezeF, () => { cur = freezeF; showFreeze(); });
   };
+  // Next play, or the share card after the last one
+  document.getElementById("another").onclick = () => {
+    if (playing) return;
+    if (playIdx === PLAYS.length - 1) { showCard(); return; }
+    resetForPlay(playIdx + 1);
+    play(freezeF, () => { cur = freezeF; showFreeze(); });
+  };
+  function resetForPlay(i) {
+    picked = null;
+    ["freeze", "reveal", "card"].forEach(id => document.getElementById(id).hidden = true);
+    loadPlay(i); resize(); cur = firstF; draw(cur);
+    startBtn.hidden = true;
+    document.querySelector(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   document.getElementById("again").onclick = () => {
     if (playing) return;
     cur = firstF;
@@ -512,6 +617,68 @@
   // Demo shortcut: openman.html#freeze plays straight to the freeze (handy for screenshots)
   if (location.hash === "#freeze") setTimeout(() => startBtn.click(), 300);
 
+  // ---------- 6. Share card (canvas -> PNG) ----------
+  function showCard() {
+    const n = results.length, found = results.filter(r => r.found).length;
+    const outRead = results.filter(r => r.outRead).length;
+    const vision = Math.round(100 * results.reduce((a, r) => a + r.share, 0) / Math.max(1, n));
+    const avgS = (results.reduce((a, r) => a + r.decisionMs, 0) / Math.max(1, n) / 1000).toFixed(1);
+    drawCard({ n, found, outRead, vision, avgS });
+    ["freeze", "reveal"].forEach(id => document.getElementById(id).hidden = true);
+    const c = document.getElementById("card"); c.hidden = false;
+    requestAnimationFrame(() => c.scrollIntoView({ behavior: "smooth", block: "start" })); // after layout settles
+  }
+  function drawCard({ n, found, outRead, vision, avgS }) {
+    const c = document.getElementById("shareCanvas"), g = c.getContext("2d"), Wc = 1080, Hc = 1350;
+    c.width = Wc; c.height = Hc;
+    g.fillStyle = "#06100B"; g.fillRect(0, 0, Wc, Hc);
+    // card body with gold border
+    const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); };
+    rr(40, 40, Wc - 80, Hc - 80, 56); g.fillStyle = "#0E2A1C"; g.fill(); g.lineWidth = 6; g.strokeStyle = GOLD; g.stroke();
+    g.save(); rr(40, 40, Wc - 80, Hc - 80, 56); g.clip();
+    // light ribbons along the bottom
+    [[.55, 1060, 60], [.35, 1130, 40], [.25, 1190, 70]].forEach(([a, y0, amp], k) => {
+      g.beginPath(); g.moveTo(0, Hc);
+      for (let x = 0; x <= Wc; x += 20) g.lineTo(x, y0 + Math.sin(x / 180 + k * 1.7) * amp * .5 - 30);
+      g.lineTo(Wc, Hc); g.closePath(); g.fillStyle = `rgba(255,201,74,${a * .45})`; g.fill();
+    });
+    g.restore();
+    const head = (sz, w = 800) => `${w} ${sz}px "Barlow Condensed", "Arial Narrow", sans-serif`;
+    g.textBaseline = "alphabetic";
+    g.fillStyle = "#EAF2EC"; g.font = head(48); g.letterSpacing = "6px"; g.fillText("THE OPEN MAN", 110, 170);
+    g.letterSpacing = "0px"; g.font = `500 32px Inter, sans-serif`; g.fillStyle = "#A9C2B3"; g.textAlign = "right";
+    g.fillText(`${n} real NFL throws`, Wc - 110, 168); g.textAlign = "left";
+    g.fillStyle = GOLD; g.font = `600 34px Inter, sans-serif`; g.fillText("YOUR QB VISION", 110, 280);
+    g.font = head(340); g.fillText(String(vision), 100, 590);
+    g.fillStyle = "#EAF2EC"; g.font = head(76);
+    g.fillText(`YOU OUT-READ ${outRead} OF ${n}`, 110, 720); g.fillText("NFL QUARTERBACKS", 110, 800);
+    // three stat tiles
+    [[`${found}/${n}`, "open man found"], [`${avgS}s`, "avg decision"], [`${outRead}`, "pros out-read"]].forEach(([big, small], k) => {
+      const x = 110 + k * 295, y = 960;
+      rr(x, y, 270, 190, 32); g.fillStyle = "#06100B"; g.fill();
+      g.fillStyle = "#EAF2EC"; g.font = head(84); g.fillText(big, x + 30, y + 100);
+      g.fillStyle = "#A9C2B3"; g.font = `500 28px Inter, sans-serif`; g.fillText(small, x + 30, y + 150);
+    });
+    g.fillStyle = "#A9C2B3"; g.font = `500 26px Inter, sans-serif`;
+    g.fillText("NFL Big Data Bowl · Next Gen Stats · 2021", 110, Hc - 90);
+  }
+  document.getElementById("download").onclick = () => {
+    const c = document.getElementById("shareCanvas");
+    c.toBlob(b => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(b); a.download = "the-open-man-card.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }, "image/png");
+  };
+  document.getElementById("restart").onclick = () => {
+    results.length = 0;
+    resetForPlay(0);
+    play(freezeF, () => { cur = freezeF; showFreeze(); });
+  };
+
+  loadPlay(0);
+  cur = firstF;
   window.addEventListener("resize", resize);
   resize();
   // Redraw once the web fonts arrive so canvas labels use Inter
