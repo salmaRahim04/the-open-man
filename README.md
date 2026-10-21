@@ -9,6 +9,13 @@ throw and asks **"Who would you throw to?"**, then reveals what the real QB did.
 
 ![The play frozen before the throw](docs/screenshot.jpg)
 
+**How it plays:** 5 real interceptions where the QB missed the open man.
+For each one you get a freeze, a pick, and a reveal ("The pro missed it",
+"Same read as the pro" or "You both missed it"), with a running score. A faint
+**"QB's eyes"** cone shows which way the QB was facing (tracking orientation),
+versus where the light was. After the 5th play you get a **share card** with
+your QB vision score, which you can download as a PNG.
+
 **Try it:** open `web/openman.html` in Chrome (double-click works, no server),
 or the GitHub Pages link once it's published.
 
@@ -82,7 +89,7 @@ python3 src/pick_showcase.py
 python3 src/charts.py
 
 # 4. Export a play for the page
-python3 src/export_play.py --auto                         # best "missed open man" INT in the first 20 games
+python3 src/export_play.py --auto --top 5                 # the 5 plays used in the game (first 20 games)
 python3 src/export_play.py --game 2021101706 --play 1861  # or any play
 ```
 
