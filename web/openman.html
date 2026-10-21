@@ -403,7 +403,7 @@
       const r = at(p, t), b = Math.atan2(r.x - q.x, r.y - q.y) * 180 / Math.PI; // same convention as "o"
       const d = Math.abs(((b - a + 540) % 360) - 180); if (d < bd) { bd = d; best = p; }
     });
-    return best;
+    return bd <= 15 ? best : null; // only if he is well inside the drawn cone (cone is +-22 deg)
   }
 
   // ---------- playback ----------
@@ -491,8 +491,9 @@
     const look = qbLookingAt(freezeF), open = players.find(p => p.nflId === S.mostOpen.nflId);
     // Based on the QB's body orientation from tracking (the "QB's eyes" cone)
     const eyes = document.getElementById("eyesLine"), tj = target ? `#${target.jersey} ${target.position}` : S.target.name;
-    eyes.hidden = !(look && open);
-    if (look && open) eyes.innerHTML = look === open
+    eyes.hidden = !open || qbAngle(freezeF) == null;
+    if (open && !look) eyes.innerHTML = `At the freeze the QB wasn't facing any of his receivers. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He threw to <b>${tj}</b>.`;
+    else if (look && open) eyes.innerHTML = look === open
       ? `At the freeze the QB was facing <b class="g">#${open.jersey} ${open.position}</b>, the open man (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He still threw to <b>${tj}</b>.`
       : `At the freeze the QB was facing <b>#${look.jersey} ${look.position}</b>. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${S.mostOpen.spotlight.toFixed(1)} yds at the throw). He threw to <b>${tj}</b>.`;
     const last = playIdx === PLAYS.length - 1;
