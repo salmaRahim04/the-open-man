@@ -1,0 +1,4 @@
+# Big Data Bowl data (~826 MB) - never commit. See README.
+data
+__pycache__/
+.DS_Store
