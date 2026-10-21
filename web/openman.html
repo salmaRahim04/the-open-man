@@ -52,6 +52,14 @@
          padding: 18px 24px; font-weight: 700; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
   .cta[hidden] { display: none; }
 
+  /* ---------- Heartbeat line (pressure meter) ---------- */
+  .pulse { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  #pulse { flex: 1; height: 44px; min-width: 0; display: block; }
+  .bpm { font-family: var(--head); font-weight: 800; font-size: 20px; min-width: 70px; text-align: right; }
+  .bpm small { display: block; font-family: var(--body); font-weight: 500; font-size: 11px; color: var(--muted); text-transform: none; }
+  .sound { background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .sound[aria-pressed="true"] { border-color: var(--red); color: var(--text); }
+
   /* ---------- 3. The freeze ---------- */
   .freeze { padding: 18px 0 4px; }
   .freeze h2 { font-size: clamp(30px, 7vw, 44px); }
@@ -131,6 +139,11 @@
       <text id="clockTxt" x="32" y="39" text-anchor="middle">0.0s</text>
     </svg>
   </section>
+  <div class="pulse">
+    <canvas id="pulse" aria-hidden="true"></canvas>
+    <div class="bpm" aria-live="off"><span id="bpm">62</span><small>QB heart rate</small></div>
+    <button class="sound" id="sound" aria-pressed="false">Sound off</button>
+  </div>
   <button class="cta" id="start">Watch the snap <span aria-hidden="true">→</span></button>
 
   <!-- 3. The freeze -->
@@ -219,6 +232,7 @@
 
   // ---------- canvas setup ----------
   const cv = document.getElementById("field"), ctx = cv.getContext("2d");
+  let pocketSecs = 0; // seconds since the snap, read by the heartbeat
   let W = 0, H = 0, dpr = 1, ppx = 1; // ppx scales the pixel sizes on small screens
   function resize() {
     dpr = window.devicePixelRatio || 1;
@@ -283,6 +297,7 @@
 
     // Bodies
     const secs = Math.max(0, (t - S.snapFrame) / 10);
+    pocketSecs = secs;
     players.forEach(p => {
       const q = pos.get(p), X = sx(q.y), Y = sy(q.x);
       ctx.beginPath();
@@ -444,6 +459,55 @@
     img.addEventListener("error", () => { img.parentElement.hidden = true; });
     if (img.complete && img.naturalWidth) show();
   });
+
+  // ---------- Heartbeat: beats faster as the pocket clock runs ----------
+  const pc = document.getElementById("pulse"), pctx = pc.getContext("2d"), bpmEl = document.getElementById("bpm");
+  let samples = [], lastBeat = -1e9, beatPhase = 0, prevTs = 0, audio = null, soundOn = false;
+  const bpmNow = () => Math.min(185, 62 + pocketSecs * 38);   // calm before the snap, racing by ~3 s
+  // ECG-like shape as a function of ms since the last beat (sum of bumps)
+  const ecg = ms => -Math.exp(-(((ms - 30) / 11) ** 2)) + .35 * Math.exp(-(((ms - 58) / 10) ** 2)) - .22 * Math.exp(-(((ms - 190) / 40) ** 2));
+  function heartbeat(ts) {
+    const dt = prevTs ? Math.min(100, ts - prevTs) : 16; prevTs = ts;
+    const bpm = bpmNow();
+    beatPhase += dt * bpm / 60000;
+    if (beatPhase >= 1) { beatPhase -= 1; lastBeat = ts; if (soundOn) thump(); }
+    const w = pc.clientWidth, h = pc.clientHeight, r = window.devicePixelRatio || 1;
+    if (pc.width !== w * r) { pc.width = w * r; pc.height = h * r; }
+    samples.push(ecg(ts - lastBeat)); samples.push(ecg(ts - lastBeat + dt / 2)); // ~2 px per frame scroll
+    while (samples.length > w) samples.shift();
+    pctx.setTransform(r, 0, 0, r, 0, 0); pctx.clearRect(0, 0, w, h);
+    const hot = pocketSecs > 0;
+    pctx.strokeStyle = hot ? "#FF5A50" : "#A9C2B3"; pctx.lineWidth = 2; pctx.lineJoin = "round";
+    pctx.beginPath();
+    samples.forEach((v, i) => pctx.lineTo(w - samples.length + i, h / 2 + v * h * .42));
+    pctx.stroke();
+    bpmEl.textContent = Math.round(bpm);
+    requestAnimationFrame(heartbeat);
+  }
+  requestAnimationFrame(heartbeat);
+
+  // Optional Web Audio "lub-dub" thump. Off by default; the audio starts on the user's click.
+  function thump() {
+    const t0 = audio.currentTime;
+    [[0, .7, 62], [.13, .4, 52]].forEach(([d, vol, hz]) => {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.setValueAtTime(hz, t0 + d); o.frequency.exponentialRampToValueAtTime(34, t0 + d + .16);
+      g.gain.setValueAtTime(.0001, t0 + d); g.gain.exponentialRampToValueAtTime(vol, t0 + d + .012);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + d + .2);
+      o.connect(g).connect(audio.destination); o.start(t0 + d); o.stop(t0 + d + .22);
+    });
+  }
+  const soundBtn = document.getElementById("sound");
+  soundBtn.onclick = () => {
+    soundOn = !soundOn;
+    if (soundOn && !audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+    if (audio && audio.state === "suspended") audio.resume();
+    soundBtn.setAttribute("aria-pressed", soundOn);
+    soundBtn.textContent = soundOn ? "Sound on" : "Sound off";
+  };
+
+  // Demo shortcut: openman.html#freeze plays straight to the freeze (handy for screenshots)
+  if (location.hash === "#freeze") setTimeout(() => startBtn.click(), 300);
 
   window.addEventListener("resize", resize);
   resize();

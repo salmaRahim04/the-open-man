@@ -5,6 +5,12 @@ receiver glows with a gold spotlight sized by his space from the nearest
 defender, the play freezes before the throw and asks "Who would you throw to?",
 then reveals what the real QB did.
 
+![The play frozen before the throw](docs/screenshot.jpg)
+
+Showcase: Week 1, DET vs SF, 3rd & 8. Jared Goff throws to a covered
+T.J. Hockenson (1.9 yds of space) and it's returned for a pick-six, while
+Jamaal Williams stands alone with 11.9 yds.
+
 ## Data
 NFL Big Data Bowl (Next Gen Stats, 2021 season weeks 1-8), from
 https://github.com/ThompsonJamesBliss/nfl-big-data-bowl-regional-event-data
@@ -22,3 +28,15 @@ python3 src/export_play.py --game 2021091204 --play 1670  # a specific play
 ```
 Writes `web/showcase.js` (`window.SHOWCASE = {...}`), so the page works by
 double-clicking `web/openman.html`, no server needed.
+
+## Run it
+Double-click `web/openman.html` (works from `file://`, no server).
+`web/openman.html#freeze` plays straight to the freeze, handy for demos.
+The heartbeat line speeds up as the pocket clock runs; "Sound on" adds a
+Web Audio heartbeat thump (off by default).
+
+## How it works
+- **Spotlight** = distance (yards) from a receiver to the nearest defender in
+  coverage (PFF role "Coverage"), every frame. Bigger = more open.
+- `--auto` scans the first 20 games for interceptions where the most open
+  receiver at the throw was not the target, ranked by the space gap.
