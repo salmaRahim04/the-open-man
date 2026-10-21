@@ -1,82 +1,113 @@
+![The Open Man: watch the play, find the light, see what the pro did](docs/demo.gif)
+
 # The Open Man: see what the QB saw
 
-**How open was every receiver the moment the ball left the QB's hand?**
+### ▶ [Play it now](https://salmarahim04.github.io/the-open-man/) · no install, no sign-up, 2 minutes
 
-A one-page experience: a real NFL pass play replays on a night field. Each
-receiver glows with a gold spotlight: the more space he has from the nearest
-defender, the bigger and brighter his light. The play freezes just before the
-throw and asks **"Who would you throw to?"**, then reveals what the real QB did.
+---
 
-![Demo: watch the play, tap the open man, see what the pro did](docs/demo.gif)
+## "He was wide open!"
 
-**How it plays:** 5 real interceptions where the QB missed the open man.
-For each one you get a freeze, a pick, and a reveal ("The pro missed it",
-"Same read as the pro" or "You both missed it"), with a running score. A faint
-**"QB's eyes"** cone shows which way the QB was facing (tracking orientation),
-versus where the light was. After the 5th play you get a **share card** with
-your QB vision score, which you can download as a PNG.
+Every football fan has yelled it at the TV. A running back stands alone in the
+flat, the quarterback forces the ball into coverage, and it gets picked off.
 
-**Play it live:** https://salmarahim04.github.io/the-open-man/
-(or open `web/openman.html` locally: double-click works, no server).
+The TV replay shows **where the ball went**. It never shows **what the QB could
+have done**: open space doesn't show up on a broadcast. Until now.
 
-## The showcase play
+## Space you can see
 
-Week 1, DET vs SF, 3rd & 8. Jared Goff throws to tight end **T.J. Hockenson**,
-who has **1.9 yards** of space. It's picked off by **Dre Greenlaw** and
-returned 39 yards for a touchdown. Meanwhile
-running back **Jamaal Williams** stands **11.9 yards** clear of anyone.
+**The Open Man turns open space into light.**
 
-## The Spotlight Score
+We take real NFL player-tracking data, 10 frames a second, every player on the
+field, and replay the play on a night field. Every receiver carries a gold
+spotlight. **The more room he has from the nearest defender, the bigger and
+brighter he glows.** Defenders are dark shapes that eat the light around them.
 
-One simple number: the distance (yards) from a receiver to the nearest coverage
-defender (PFF role "Coverage"), at every frame. Bigger = more open.
+Suddenly the read is obvious. You can *see* the open man.
 
-## What the data says
+## Then we hand you the ball
 
-Across 122 games and **7,583 pass plays** (2021 season, weeks 1-8, 10 frames/s):
+1. **Watch the snap.** A real play unfolds. The pocket clock ticks, the QB's
+   heartbeat races, a cone shows where he's looking.
+2. **The freeze.** A heartbeat before the real throw, the play stops:
+   *"Tap the light to throw."*
+3. **Your call.** Tap the receiver you'd throw to.
+4. **The reveal.** We show what the NFL quarterback actually did, and the stamp
+   doesn't lie: **THE PRO MISSED IT**, **SAME READ AS THE PRO**, or
+   **YOU MADE THE SAME MISTAKE**.
 
-### 1. Light wins: open receivers get caught
+Five real interceptions. A running score. At the end, a **share card** with
+your QB vision score, ready to post.
+
+## The play that sells it
+
+Week 1, Lions vs 49ers, 3rd & 8. Jared Goff throws to a tightly covered
+T.J. Hockenson, **1.9 yards** of space. Dre Greenlaw picks it off and runs it
+back 39 yards for a touchdown.
+
+Meanwhile, running back **Jamaal Williams** stood alone in **11.9 yards of
+light**. On our field, he's the brightest thing on the screen. You'll see him.
+The pro didn't.
+
+## This isn't a gimmick. The light is real.
+
+We measured the Spotlight Score (yards to the nearest defender in coverage)
+for every receiver at every throw: **122 games, 7,583 pass plays**.
+
+| | |
+|---|---|
+| **81% vs 23%** | Targets with 5+ yards of space are caught 81% of the time. In tight coverage (0-1 yd): 23%. **Light wins, 3.5x.** |
+| **10 of 10** | The ten receivers most often left wide open and ignored are **all running backs**. |
+| **96 of 127** | D'Andre Swift was the most open man on the field 127 times and didn't get the ball on 96 of them. |
 
 ![Completion rate by space](outputs/chart1_light_wins.png)
-
-| Space at throw | Completion rate | Plays |
-|---------------:|:---------------:|------:|
-| 0-1 yd         | **23%**         | 590   |
-| 1-2 yd         | 48%             | 1,457 |
-| 2-3 yd         | 59%             | 1,114 |
-| 3-5 yd         | 71%             | 1,814 |
-| 5+ yd          | **81%**         | 2,116 |
-
-A wide-open target (5+ yds) is caught 3.5x more often than one in tight coverage.
-
-### 2. Left in the light: the ignored open man is a running back
-
 ![Most open but not targeted](outputs/chart2_left_in_light.png)
 
-Counting every time a player was the most open receiver at the throw but did
-not get the ball (min 20 routes), **the whole top 10 are running backs**.
-**D'Andre Swift** (#32 in the showcase play) was the most open man 127 times
-and ignored on 96 of them. QBs lock onto the downfield read and leave the
-checkdown standing in the light.
+Quarterbacks lock onto the downfield read and leave the checkdown standing in
+the light. The Open Man makes that visible to anyone, in one glance.
 
-## Project layout
+## Who it's for
+
+- **Fans:** a 2-minute game that makes you feel like a quarterback, and a
+  score card you'll want to share.
+- **Broadcasters:** a replay segment that explains a bad read in five seconds
+  without a telestrator.
+- **Coaches and players:** a visual way to train the read: find the light,
+  before the pocket collapses.
+
+## Where it goes next
+
+- **Today's 10 throws:** a fresh daily set drawn from all 7,583 dropbacks.
+- **Live:** light up the open man on the replay minutes after the play happens.
+- **QB rankings:** who finds the light most often, and who leaves it on the field.
+
+---
+
+## Under the hood
+
+- **One file, zero dependencies:** `web/openman.html` is plain HTML, CSS and
+  JavaScript. Double-click it and it works, no server needed. It runs on phones
+  and has a dedicated desktop layout.
+- **Real data only:** every position, every glow and every number comes from NFL
+  Next Gen Stats tracking plus PFF roles. Nothing is simulated.
+- **Python pipeline:** pandas computes the Spotlight Score for every receiver,
+  every frame, every game in about 30 seconds.
 
 ```
-web/openman.html        the interactive experience (single file, plain HTML/CSS/JS)
-web/showcase.js         the play data (window.SHOWCASE = {...}), made by export_play.py
-src/export_play.py      exports one play for the page (--auto finds a showcase)
-src/build_spotlight.py  spotlight score for every receiver, every frame, every game
-src/pick_showcase.py    ranks "missed open man" interceptions
+web/openman.html        the experience (single file, plain HTML/CSS/JS)
+web/showcase.js         the 5 plays (window.SHOWCASES = [...]), made by export_play.py
+src/export_play.py      finds "missed open man" interceptions and exports them for the page
+src/build_spotlight.py  Spotlight Score for every receiver, every frame, every game
+src/pick_showcase.py    ranks missed-open-man interceptions across the season
 src/charts.py           the two insight charts (outputs/*.png)
-src/replay.py           a Plotly replay of one play (outputs/replay.html)
+src/replay.py           a Plotly replay of one play
 design/                 the UI mockups
 ```
 
-## Run it yourself
+### Run it yourself
 
 ```bash
-# 1. Data (~826 MB, git-ignored) from
-#    https://github.com/ThompsonJamesBliss/nfl-big-data-bowl-regional-event-data
+# 1. Data (~826 MB, not in this repo)
 git clone --depth 1 https://github.com/ThompsonJamesBliss/nfl-big-data-bowl-regional-event-data.git ../bdb-data
 ln -s ../bdb-data/data data
 
@@ -88,18 +119,16 @@ python3 src/build_spotlight.py
 python3 src/pick_showcase.py
 python3 src/charts.py
 
-# 4. Export a play for the page
-python3 src/export_play.py --auto --top 5                 # the 5 plays used in the game (first 20 games)
-python3 src/export_play.py --game 2021101706 --play 1861  # or any play
+# 4. Export the plays for the page
+python3 src/export_play.py --auto --top 5                 # the 5 plays in the game
+python3 src/export_play.py --game 2021101706 --play 1861  # or any single play
 ```
 
-Then open `web/openman.html`. Tip: `web/openman.html#freeze` jumps straight to
-the freeze for demos. The heartbeat line speeds up as the pocket clock runs;
-"Sound on" adds a heartbeat thump (off by default).
+Then open `web/openman.html`. Demo tips: `#freeze` jumps straight to the freeze,
+and `?speed=0.5` plays in slow motion.
 
-## Data
+### Data
 
-NFL Big Data Bowl 2023 data (NFL Next Gen Stats tracking + PFF scouting),
+NFL Big Data Bowl 2023: NFL Next Gen Stats tracking plus PFF scouting data,
 2021 season weeks 1-8, via
 https://github.com/ThompsonJamesBliss/nfl-big-data-bowl-regional-event-data.
-The data is not included in this repo.
