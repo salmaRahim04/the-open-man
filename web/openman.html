@@ -177,15 +177,23 @@
                     align-items: center; column-gap: 12px; padding: 10px 14px; }
     .side .choice .num { grid-area: num; } .side .choice .nm { grid-area: nm; margin: 0; }
     .side .choice .bar { grid-area: bar; } .side .choice .yds { grid-area: yds; margin: 0; text-align: right; color: var(--text); font-weight: 600; font-size: 14px; }
-    /* After the throw the panel swaps to the reveal */
-    .side:has(#reveal:not([hidden])) #freeze { display: none; }
-    .side .reveal { padding: 0; }
-    .side .stampbox { margin: 0; padding: 8px 0 18px; }
-    .side .stamp { font-size: 34px; border-width: 4px; padding: 8px 16px; }
+    /* Result card: stamp, two cards side by side, story line, buttons */
+    .reveal { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 22px 24px; }
+    .reveal .stampbox { margin: 0; padding: 6px 0 20px; }
+    .reveal .stamp { font-size: 30px; border-width: 4px; padding: 8px 16px; }
+    .reveal .kicker { right: 0; }
+    .reveal .cards { grid-template-columns: 1fr 1fr; }
+    .reveal .card .num { font-size: 28px; }
+    .reveal .eyes { margin-top: 14px; background: none; border: 0; padding: 0; }
     .side .choice .of { display: none; }
-    .side .kicker { right: 0; }
-    .side .cards { grid-template-columns: 1fr; }
-    .side .eyes { margin-top: 12px; }
+    .side .choice.picked { border-color: var(--gold); background: #1A1A0E; opacity: 1; }
+    .side .choice:disabled { opacity: .55; }
+    /* less empty sky above the tilted field */
+    .stage .persp { margin-top: -64px; }
+    /* heartbeat: just the bpm, red, like the mockup */
+    .side .bpm { color: var(--red); font-family: var(--body); font-weight: 600; font-size: 14px; }
+    .side .bpm small { display: none; } .side .bpm span::after { content: " bpm"; }
+    .stat .num { text-transform: none; }
     .reveal-wide .panel { margin-top: 0; padding: 22px 24px; }
     .reveal-wide .panel-head h3 { font-size: 26px; }
     #ribbons text { font-size: 14px; } #ribbons text.lbl { font-size: 20px; }
@@ -216,10 +224,9 @@
   }
   /* Large desktop (>= 1100px): field and panel side by side, ribbons full width */
   @media (min-width: 1100px) {
-    .play { display: grid; grid-template-columns: 2fr 1fr; align-items: start; }
-    .stage { grid-column: 1; grid-row: 1; }
-    .side { grid-column: 2; grid-row: 1; }
-    .reveal-wide { grid-column: 1 / -1; }
+    .play { display: grid; grid-template-columns: 2fr 1fr; grid-template-areas: "stage side" "wide reveal"; align-items: start; }
+    .stage { grid-area: stage; } .side { grid-area: side; }
+    .reveal-wide { grid-area: wide; } .reveal { grid-area: reveal; }
   }
   [hidden] { display: none !important; }
   @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
@@ -280,7 +287,9 @@
         <div class="choices" id="choices"></div>
       </section>
 
-      <!-- 4. The reveal (panel part) -->
+    </aside>
+
+    <!-- 4. The reveal card (desktop: right of the ribbons) -->
       <section class="reveal" id="reveal" hidden aria-live="polite">
         <div class="stampbox"><div class="stamp" id="stamp"></div><span class="kicker" id="kicker" hidden>You found it</span></div>
         <div class="cards">
@@ -293,7 +302,6 @@
           <button class="btn primary" id="another">Next play &rarr;</button>
         </div>
       </section>
-    </aside>
 
     <!-- 4. The reveal (full-width part): light ribbons + play description -->
     <section class="reveal-wide" id="revealWide" hidden>
@@ -504,8 +512,10 @@
 
     // Labels: pills drawn "upright" by stretching vertically to cancel the CSS tilt
     ctx.font = `700 ${Math.round(13 * Math.max(ppx, .85))}px Inter, sans-serif`;
+    const brightest = receivers.reduce((a, r) => (pos.get(r).spotlight || 0) > (pos.get(a).spotlight || 0) ? r : a);
     receivers.forEach(p => {
-      const q = pos.get(p), X = sx(q.y), Y = sy(q.x) - 16 * ppx, txt = label(p);
+      const q = pos.get(p), X = sx(q.y), Y = sy(q.x) - 16 * ppx;
+      const txt = p === brightest && (q.spotlight || 0) >= 5 ? `${label(p)} · ${q.spotlight.toFixed(1)} yds` : label(p);
       const bright = (q.spotlight || 0) >= 5, w = ctx.measureText(txt).width + 14, h = 20;
       ctx.save(); ctx.translate(X, Y); ctx.scale(1, 1 / Math.cos(TILT));
       ctx.fillStyle = bright ? GOLD : "rgba(6,16,11,.85)";
@@ -618,6 +628,11 @@
     stamp.style.animation = "none"; void stamp.offsetWidth; stamp.style.animation = "";
     document.getElementById("kicker").hidden = !userFoundIt;
 
+    // Cards: if you threw where the QB threw (and he wasn't open), show "You and the QB" + "The open man was"
+    const both = pickedTarget && !targetWasOpen, cards = document.querySelectorAll(".reveal .card");
+    cards[0].className = "card " + (both ? "pro" : "you"); cards[1].className = "card " + (both ? "you" : "pro");
+    cards[0].querySelector("small").textContent = both ? "You and the QB threw to" : "You threw to";
+    cards[1].querySelector("small").textContent = both ? "The open man was" : "The NFL QB threw to";
     document.getElementById("youNum").textContent = label(picked.p);
     document.getElementById("youName").textContent = picked.p.name;
     // Both cards measured at the same moment: the freeze (what the player saw)
@@ -626,22 +641,35 @@
     document.getElementById("proName").textContent = S.target.name;
     const tSp = target ? (at(target, freezeF).spotlight || 0) : S.target.spotlight;
     document.getElementById("proSp").textContent = `${tSp.toFixed(1)} yds at the freeze · ${RESULT[S.passResult] || S.passResult}`;
+    if (both) { // second card shows the open man instead
+      document.getElementById("youSp").textContent += ` · ${RESULT[S.passResult] || S.passResult}`;
+      document.getElementById("proNum").textContent = label(openNow);
+      document.getElementById("proName").textContent = openNow.name;
+      document.getElementById("proSp").textContent = `${(at(openNow, freezeF).spotlight || 0).toFixed(1)} yds at the freeze`;
+    }
     document.getElementById("desc").textContent = S.description;
     const look = qbLookingAt(freezeF), open = openNow, openSp = (at(open, freezeF).spotlight || 0).toFixed(1);
     // Based on the QB's body orientation from tracking (the "QB's eyes" cone)
     const eyes = document.getElementById("eyesLine"), tj = target ? `#${target.jersey} ${target.position}` : S.target.name;
     eyes.hidden = !open || qbAngle(freezeF) == null;
-    if (open && !look) eyes.innerHTML = `At the freeze the QB wasn't facing any of his receivers. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${openSp} yds at the freeze). He threw to <b>${tj}</b>.`;
-    else if (look && open) eyes.innerHTML = look === open
-      ? `At the freeze the QB was facing <b class="g">#${open.jersey} ${open.position}</b>, the open man (${openSp} yds at the freeze). He threw to <b>${tj}</b>.`
-      : `At the freeze the QB was facing <b>#${look.jersey} ${look.position}</b>. The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${openSp} yds at the freeze). He threw to <b>${tj}</b>.`;
+    const qbN = (S.description.match(/\)\s*([A-Z][\w.'-]+)\s+pass/) || [])[1];
+    const tN = (S.description.match(/intended for ([A-Z][\w.'-]+)/) || [])[1];
+    const iN = (S.description.match(/INTERCEPTED by ([A-Z][\w.'-]+)/) || [])[1];
+    // One short paragraph: what happened (from the play text) + where the QB was facing (tracking)
+    const story = qbN && tN && iN
+      ? `${qbN}'s pass to ${tN} was intercepted by ${iN}. <b class="g">${open.name}</b> stood alone in ${openSp} yards of light. `
+      : `The most light was on <b class="g">#${open.jersey} ${open.position}</b> (${openSp} yds). He threw to <b>${tj}</b>. `;
+    const facing = !look ? "At the freeze the QB wasn't facing any of his receivers."
+      : look === open ? `At the freeze the QB was even facing him.`
+      : `At the freeze the QB was facing <b>#${look.jersey} ${look.position}</b>.`;
+    eyes.innerHTML = story + facing;
     const last = playIdx === PLAYS.length - 1;
     document.getElementById("another").innerHTML = last ? "See my card &rarr;" : "Next play &rarr;";
     const r = document.getElementById("reveal");
     r.hidden = false; document.getElementById("revealWide").hidden = false;
     buildRibbons();
     // Desktop: the panel swaps in place, keep the field in view. Phones: scroll to the stamp.
-    if (window.innerWidth >= 1100) document.getElementById("play").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (window.innerWidth >= 1100) r.scrollIntoView({ behavior: "smooth", block: "center" });
     else document.getElementById("stamp").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
