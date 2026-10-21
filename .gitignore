@@ -2,3 +2,7 @@
 data
 __pycache__/
 .DS_Store
+# Generated tables (re-create with src/build_spotlight.py)
+outputs/*.parquet
+outputs/*.csv
+outputs/*.html

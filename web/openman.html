@@ -174,10 +174,11 @@
   <!-- 5. Insights (hidden unless the chart images load) -->
   <section class="insights" id="insights" hidden>
     <h2>What the light says</h2>
-    <figure hidden><img src="../outputs/charts/light_wins.png" alt="Chart: completion rate rises with the target's spotlight (yards of space)">
-      <figcaption>The more light on the target at the throw, the more often the pass is caught.</figcaption></figure>
-    <figure hidden><img src="../outputs/charts/left_in_light.png" alt="Chart: how often the most open receiver was left untargeted">
-      <figcaption>On many dropbacks, the brightest receiver on the field never gets the ball.</figcaption></figure>
+    <!-- Charts made by src/charts.py (run it to regenerate) -->
+    <figure hidden><img src="../outputs/chart1_light_wins.png" alt="Bar chart: completion rate by the target's space at the throw, rising from 23% at 0-1 yards to 81% at 5+ yards">
+      <figcaption><b>Light wins.</b> A target with 5+ yards of space is caught 81% of the time, versus 23% in tight coverage (0-1 yd).</figcaption></figure>
+    <figure hidden><img src="../outputs/chart2_left_in_light.png" alt="Bar chart: players most often the most open receiver but not thrown to; the top 10 are all running backs, led by D'Andre Swift">
+      <figcaption><b>Left in the light.</b> The 10 most-ignored open men are all running backs. D'Andre Swift, #32 in this play, was the most open receiver 127 times and ignored on 96.</figcaption></figure>
   </section>
 
   <!-- 6. Footer -->
