@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Open Man</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    --bg: #06100B;
+    --turf: #0E2A1C;
+    --panel: #0B1C13;
+    --line: #1C3A2A;
+    --text: #EAF2EC;
+    --muted: #A9C2B3;
+    --gold: #FFC94A;
+    --def: #020604;
+    --violet: #6F7CFF;
+    --red: #FF5A50;
+    --head: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --body: "Inter", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--body); }
+  body { -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  h1, h2, h3, .num { font-family: var(--head); text-transform: uppercase; font-weight: 800; letter-spacing: .01em; margin: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  /* ---------- 1. Header ---------- */
+  header.top { display: flex; align-items: center; gap: 12px; padding: 24px 0 8px; }
+  .logo { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--gold); display: grid; place-items: center; }
+  .logo::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); }
+  .brand { font-family: var(--head); font-weight: 800; font-size: 22px; letter-spacing: .14em; }
+  .hero h1 { font-size: clamp(44px, 11vw, 84px); line-height: .92; margin-top: 20px; }
+  .meta { color: var(--muted); margin: 12px 0 0; font-size: 15px; }
+  .meta b { color: var(--text); font-weight: 600; }
+
+  /* ---------- 2. The stage ---------- */
+  .stage { position: relative; margin: 8px -16px 0; }
+  .persp { perspective: 900px; perspective-origin: 50% 50%; overflow: hidden; }
+  #field { display: block; width: 100%; transform: rotateX(40deg); transform-origin: 50% 50%; }
+  .clock { position: absolute; top: 10px; right: 16px; width: 64px; height: 64px; }
+  .clock text { font-family: var(--head); font-weight: 800; fill: var(--text); font-size: 20px; }
+  .situation { position: absolute; top: 14px; left: 16px; font-size: 13px; color: var(--muted); }
+  .situation .num { display: block; color: var(--text); font-size: 22px; }
+  .cta { width: 100%; margin-top: 14px; background: var(--gold); color: #1B1300; border: 0; border-radius: 16px;
+         padding: 18px 24px; font-weight: 700; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .cta[hidden] { display: none; }
+
+  /* ---------- 3. The freeze ---------- */
+  .freeze { padding: 18px 0 4px; }
+  .freeze h2 { font-size: clamp(30px, 7vw, 44px); }
+  .freeze p { color: var(--muted); margin: 6px 0 14px; }
+  .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .choice { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; text-align: left; }
+  .choice:hover, .choice.picked { border-color: var(--gold); background: #1A1A0E; }
+  .choice .num { font-size: 20px; }
+  .choice .nm { display: block; color: var(--muted); font-size: 13px; margin: 2px 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar { height: 6px; border-radius: 3px; background: #1E3327; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--gold); border-radius: 3px; }
+  .yds { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* ---------- 4. The reveal ---------- */
+  .reveal { padding: 28px 0 8px; }
+  .stampbox { display: grid; place-items: center; padding: 20px 0 30px; position: relative; }
+  .stamp { font-family: var(--head); font-weight: 800; text-transform: uppercase; text-align: center;
+           font-size: clamp(42px, 11vw, 72px); line-height: .9; padding: 14px 26px;
+           border: 6px solid var(--red); color: var(--red); border-radius: 10px; transform: rotate(-7deg);
+           animation: slam .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+  .stamp.gold { border-color: var(--gold); color: var(--gold); }
+  .kicker { position: absolute; top: 0; right: 4%; background: var(--gold); color: #1B1300; font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 999px; }
+  @keyframes slam { from { transform: rotate(-7deg) scale(2.2); opacity: 0; } to { transform: rotate(-7deg) scale(1); opacity: 1; } }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card { border-radius: 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); }
+  .card.you { border-color: var(--gold); background: #17170C; }
+  .card.pro { border-color: #4A2320; background: #1A0E0C; }
+  .card small { color: var(--muted); font-size: 13px; }
+  .card .num { font-size: clamp(26px, 6vw, 36px); display: block; margin: 4px 0 2px; }
+  .card .who { font-size: 14px; color: var(--text); }
+  .card .sp { font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .card.you .sp { color: var(--gold); }
+  .card.pro .sp { color: var(--red); }
+  .panel { margin-top: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .panel-head h3 { font-size: 22px; }
+  .panel-head span { color: var(--muted); font-size: 13px; }
+  #ribbons { width: 100%; height: auto; display: block; }
+  #ribbons text { font-family: var(--body); font-size: 12px; fill: var(--muted); }
+  #ribbons text.lbl { font-family: var(--head); font-weight: 800; font-size: 16px; fill: var(--text); }
+  .desc { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 14px 0 0; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .btn { border-radius: 14px; padding: 16px; font-weight: 700; font-size: 16px; border: 1px solid var(--line); background: transparent; }
+  .btn.primary { background: var(--gold); color: #1B1300; border-color: var(--gold); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* ---------- 5. Insights + footer ---------- */
+  .insights { padding: 40px 0 0; }
+  .insights h2 { font-size: 30px; margin-bottom: 14px; }
+  .insights figure { margin: 0 0 18px; }
+  .insights img { width: 100%; border-radius: 12px; display: block; background: var(--panel); }
+  .insights figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 18px 0 32px; color: var(--muted); font-size: 13px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1. Header -->
+  <header class="top"><span class="logo" aria-hidden="true"></span><span class="brand">THE OPEN MAN</span></header>
+  <section class="hero">
+    <h1>See what the<br>QB saw.</h1>
+    <p class="meta" id="meta"></p>
+  </section>
+
+  <!-- 2. The stage -->
+  <section class="stage" aria-label="Play replay">
+    <div class="persp"><canvas id="field" role="img" aria-label="Animated replay of the play from behind the quarterback"></canvas></div>
+    <div class="situation"><span class="num" id="dd"></span><span id="sit2"></span></div>
+    <svg class="clock" viewBox="0 0 64 64" aria-label="Pocket clock: seconds since the snap">
+      <circle cx="32" cy="32" r="27" fill="#06100BCC" stroke="#1C3A2A" stroke-width="5"/>
+      <circle id="clockArc" cx="32" cy="32" r="27" fill="none" stroke="#FF5A50" stroke-width="5"
+              stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
+      <text id="clockTxt" x="32" y="39" text-anchor="middle">0.0s</text>
+    </svg>
+  </section>
+  <button class="cta" id="start">Watch the snap <span aria-hidden="true">→</span></button>
+
+  <!-- 3. The freeze -->
+  <section class="freeze" id="freeze" hidden>
+    <h2>Tap the light to throw</h2>
+    <p>The pocket is collapsing. Who would you throw to? Brighter light = more space.</p>
+    <div class="choices" id="choices"></div>
+  </section>
+
+  <!-- 4. The reveal -->
+  <section class="reveal" id="reveal" hidden aria-live="polite">
+    <div class="stampbox"><div class="stamp" id="stamp"></div><span class="kicker" id="kicker" hidden>You found it</span></div>
+    <div class="cards">
+      <div class="card you"><small>You threw to</small><span class="num" id="youNum"></span><span class="who" id="youName"></span><div class="sp" id="youSp"></div></div>
+      <div class="card pro"><small>The NFL QB threw to</small><span class="num" id="proNum"></span><span class="who" id="proName"></span><div class="sp" id="proSp"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Light ribbons</h3><span>Thicker = more open</span></div>
+      <svg id="ribbons" role="img" aria-label="Space of each receiver from snap to throw"></svg>
+    </div>
+    <p class="desc" id="desc"></p>
+    <div class="actions">
+      <button class="btn" id="again">Watch again</button>
+      <button class="btn primary" id="another" disabled title="Coming soon">Try another play</button>
+    </div>
+  </section>
+
+  <!-- 5. Insights (hidden unless the chart images load) -->
+  <section class="insights" id="insights" hidden>
+    <h2>What the light says</h2>
+    <figure hidden><img src="../outputs/charts/light_wins.png" alt="Chart: completion rate rises with the target's spotlight (yards of space)">
+      <figcaption>The more light on the target at the throw, the more often the pass is caught.</figcaption></figure>
+    <figure hidden><img src="../outputs/charts/left_in_light.png" alt="Chart: how often the most open receiver was left untargeted">
+      <figcaption>On many dropbacks, the brightest receiver on the field never gets the ball.</figcaption></figure>
+  </section>
+
+  <!-- 6. Footer -->
+  <footer>Data: NFL Big Data Bowl, Next Gen Stats, 2021 season weeks 1-8.</footer>
+</div>
+
+<!-- The play data, generated by src/export_play.py (a .js file so no server is needed) -->
+<script src="showcase.js"></script>
+<script>
+(function () {
+  "use strict";
+  const S = window.SHOWCASE;
+  if (!S) { document.getElementById("meta").textContent = "showcase.js not found: run src/export_play.py"; return; }
+
+  // ---------- constants ----------
+  const GOLD = "#FFC94A", RED = "#FF5A50", VIOLET = "#6F7CFF", DEF = "#020604", TURF = "#0E2A1C";
+  const MS_PER_FRAME = 100;          // tracking is 10 frames per second
+  const TILT = 40 * Math.PI / 180;   // must match CSS rotateX(40deg)
+  const PERSP = 900;                 // must match CSS perspective: 900px
+  const RESULT = { C: "Complete", I: "Incomplete", IN: "Intercepted", S: "Sack", R: "Scramble" };
+
+  // ---------- prepare data ----------
+  const players = S.players;
+  const firstF = Math.min(...players.map(p => p.frames[0].f));
+  const lastF = Math.max(...players.map(p => p.frames[p.frames.length - 1].f));
+  const freezeF = S.throwFrame - 3;
+  const receivers = players.filter(p => p.role === "receiver");
+  const ball = players.find(p => p.role === "ball");
+  const losX = (ball && (ball.frames.find(f => f.f === S.snapFrame) || ball.frames[0]).x) || 0;
+  players.forEach(p => { p.byF = {}; p.frames.forEach(fr => p.byF[fr.f] = fr); });
+
+  // Camera window (in yards): downfield range that covers everyone, full field width
+  const allX = players.flatMap(p => p.frames.map(f => f.x));
+  let xMin = Math.min(...allX) - 4, xMax = Math.max(...allX) + 4;
+  if (xMax - xMin < 32) { const m = (xMax + xMin) / 2; xMin = m - 16; xMax = m + 16; }
+
+  // Position of a player at a fractional frame (linear interpolation)
+  function at(p, t) {
+    const fs = p.frames, tt = Math.min(Math.max(t, fs[0].f), fs[fs.length - 1].f); // clamp to this track
+    const f0 = Math.floor(tt), a = p.byF[f0] || fs[0], b = p.byF[f0 + 1] || a, k = tt - f0;
+    return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k,
+             spotlight: a.spotlight == null ? null : a.spotlight + ((b.spotlight ?? a.spotlight) - a.spotlight) * k };
+  }
+  const label = p => `#${p.jersey} ${p.position}`;
+  const ord = n => n + (["th", "st", "nd", "rd"][n] || "th");
+
+  // ---------- header text ----------
+  document.getElementById("meta").innerHTML =
+    `<b>Week ${S.week}</b> · ${S.offense} vs ${S.defense} · ${ord(S.down)} &amp; ${S.yardsToGo} · Q${S.quarter} ${S.gameClock}`;
+  document.getElementById("dd").textContent = `${ord(S.down)} & ${S.yardsToGo}`;
+  document.getElementById("sit2").textContent = `${S.offense} ball vs ${S.defense}`;
+
+  // ---------- canvas setup ----------
+  const cv = document.getElementById("field"), ctx = cv.getContext("2d");
+  let W = 0, H = 0, dpr = 1, ppx = 1; // ppx scales the pixel sizes on small screens
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    W = cv.parentElement.clientWidth;
+    // Taller field on phones (like the mockup); the tilt flattens it again
+    H = Math.round(W * (xMax - xMin) / 53.3 * (W < 560 ? 1.45 : 0.9));
+    cv.style.height = H + "px";
+    cv.width = W * dpr; cv.height = H * dpr;
+    ppx = Math.min(1, W / 700) * 1.1;
+    draw(cur);
+  }
+  // Field -> canvas: offense goes UP the screen, seen from behind the QB.
+  const sx = y => (53.3 - y) / 53.3 * W;
+  const sy = x => (xMax - x) / (xMax - xMin) * H;
+
+  // ---------- drawing ----------
+  function draw(t) {
+    if (!W) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = TURF; ctx.fillRect(0, 0, W, H);
+
+    // Yard lines every 5 yards (faint), line of scrimmage in gold
+    ctx.lineWidth = 1;
+    for (let yd = Math.ceil(xMin / 5) * 5; yd <= xMax; yd += 5) {
+      ctx.strokeStyle = yd % 10 === 0 ? "rgba(234,242,236,.13)" : "rgba(234,242,236,.06)";
+      ctx.beginPath(); ctx.moveTo(0, sy(yd)); ctx.lineTo(W, sy(yd)); ctx.stroke();
+    }
+    ctx.strokeStyle = GOLD; ctx.globalAlpha = .75; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(W * .1, sy(losX)); ctx.lineTo(W * .9, sy(losX)); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    const pos = new Map(players.map(p => [p, at(p, t)]));
+
+    // Route trails (dotted gold) from the snap to now
+    ctx.setLineDash([2, 5]); ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,201,74,.35)";
+    receivers.forEach(p => {
+      ctx.beginPath();
+      for (let f = S.snapFrame; f <= Math.min(t, lastF); f++) { const q = p.byF[f]; if (q) ctx.lineTo(sx(q.y), sy(q.x)); }
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Receiver spotlights: additive radial gold glow, radius = 6 + spotlight*6 px
+    ctx.globalCompositeOperation = "lighter";
+    receivers.forEach(p => {
+      const q = pos.get(p), s = Math.min(10, Math.max(0, q.spotlight || 0));
+      const r = (6 + s * 6) * ppx, a = .12 + .55 * (s / 10); // brighter with more space
+      const g = ctx.createRadialGradient(sx(q.y), sy(q.x), 0, sx(q.y), sy(q.x), r);
+      g.addColorStop(0, `rgba(255,201,74,${a})`); g.addColorStop(.45, `rgba(255,201,74,${a * .45})`); g.addColorStop(1, "rgba(255,201,74,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx(q.y), sy(q.x), r, 0, 7); ctx.fill();
+    });
+    ctx.globalCompositeOperation = "source-over";
+
+    // Defender shadows "eat" the light around them
+    players.filter(p => p.role === "defender").forEach(p => {
+      const q = pos.get(p), r = 34 * ppx;
+      const g = ctx.createRadialGradient(sx(q.y), sy(q.x), 0, sx(q.y), sy(q.x), r);
+      g.addColorStop(0, "rgba(2,6,4,.75)"); g.addColorStop(1, "rgba(2,6,4,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx(q.y), sy(q.x), r, 0, 7); ctx.fill();
+    });
+
+    // Bodies
+    const secs = Math.max(0, (t - S.snapFrame) / 10);
+    players.forEach(p => {
+      const q = pos.get(p), X = sx(q.y), Y = sy(q.x);
+      ctx.beginPath();
+      if (p.role === "other") { ctx.fillStyle = "#4A5A51"; ctx.arc(X, Y, 5 * ppx, 0, 7); ctx.fill(); }
+      else if (p.role === "defender") { ctx.fillStyle = DEF; ctx.arc(X, Y, 8 * ppx, 0, 7); ctx.fill(); ctx.strokeStyle = VIOLET; ctx.lineWidth = 2; ctx.stroke(); }
+      else if (p.role === "receiver") { ctx.fillStyle = GOLD; ctx.arc(X, Y, 6 * ppx, 0, 7); ctx.fill(); }
+      else if (p.role === "qb") {
+        // Red pressure ring tightens as seconds pass after the snap
+        const rr = Math.max(10, 26 - secs * 5) * ppx;
+        ctx.fillStyle = "rgba(255,90,80,.18)"; ctx.arc(X, Y, rr + 6 * ppx, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.strokeStyle = RED; ctx.lineWidth = 3; ctx.arc(X, Y, rr, 0, 7); ctx.stroke();
+        ctx.beginPath(); ctx.fillStyle = "#F4F7F5"; ctx.arc(X, Y, 7 * ppx, 0, 7); ctx.fill();
+      }
+    });
+    if (ball) { const q = pos.get(ball); ctx.beginPath(); ctx.fillStyle = "#FFFFFF"; ctx.arc(sx(q.y), sy(q.x), 3 * ppx, 0, 7); ctx.fill(); }
+
+    // Labels: pills drawn "upright" by stretching vertically to cancel the CSS tilt
+    ctx.font = `700 ${Math.round(13 * Math.max(ppx, .85))}px Inter, sans-serif`;
+    receivers.forEach(p => {
+      const q = pos.get(p), X = sx(q.y), Y = sy(q.x) - 16 * ppx, txt = label(p);
+      const bright = (q.spotlight || 0) >= 5, w = ctx.measureText(txt).width + 14, h = 20;
+      ctx.save(); ctx.translate(X, Y); ctx.scale(1, 1 / Math.cos(TILT));
+      ctx.fillStyle = bright ? GOLD : "rgba(6,16,11,.85)";
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-w / 2, -h, w, h, 10) : ctx.rect(-w / 2, -h, w, h); ctx.fill();
+      ctx.fillStyle = bright ? "#1B1300" : "#EAF2EC"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(txt, 0, -h / 2 + 1);
+      ctx.restore();
+    });
+
+    // Pocket clock (seconds since the snap; full ring = 4 s)
+    const arc = document.getElementById("clockArc");
+    arc.setAttribute("stroke-dashoffset", 169.6 * (1 - Math.min(1, secs / 4)));
+    document.getElementById("clockTxt").textContent = secs.toFixed(1) + "s";
+  }
+
+  // ---------- playback ----------
+  let cur = firstF, playing = false, stopAt = lastF, lastTs = 0, onStop = null;
+  function play(to, done) {
+    stopAt = to; onStop = done; playing = true; lastTs = 0;
+    requestAnimationFrame(tick);
+  }
+  function tick(ts) {
+    if (!playing) return;
+    if (lastTs) cur += (ts - lastTs) / MS_PER_FRAME;
+    lastTs = ts;
+    if (cur >= stopAt) { cur = stopAt; playing = false; draw(cur); if (onStop) onStop(); return; }
+    draw(cur);
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- 3. The freeze ----------
+  let picked = null;
+  const choicesEl = document.getElementById("choices");
+  function showFreeze() {
+    document.getElementById("freeze").hidden = false;
+    choicesEl.innerHTML = "";
+    receivers.forEach(p => {
+      const s = at(p, cur).spotlight || 0;
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.innerHTML = `<span class="num">${label(p)}</span><span class="nm">${p.name}</span>
+        <div class="bar"><i style="width:${Math.min(100, s * 10)}%"></i></div><div class="yds">${s.toFixed(1)} yds of space</div>`;
+      b.setAttribute("aria-label", `Throw to ${p.name}, ${p.position}, ${s.toFixed(1)} yards of space`);
+      b.onclick = () => pick(p);
+      choicesEl.appendChild(b);
+    });
+    document.getElementById("freeze").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function pick(p) {
+    if (picked || playing) return;
+    picked = { p, spotlight: at(p, cur).spotlight || 0 };
+    [...choicesEl.children].forEach((b, i) => { b.disabled = true; if (receivers[i] === p) b.classList.add("picked"); });
+    play(lastF, showReveal);
+  }
+
+  // Click a glowing receiver on the tilted canvas: undo the CSS 3D transform
+  cv.addEventListener("click", e => {
+    if (cur !== freezeF || picked) return;
+    const box = cv.parentElement.getBoundingClientRect();     // untransformed wrapper
+    const X = e.clientX - (box.left + box.width / 2), Y = e.clientY - (box.top + box.height / 2);
+    const yl = Y * PERSP / (PERSP * Math.cos(TILT) + Y * Math.sin(TILT)); // local y before tilt
+    const xl = X * (PERSP - yl * Math.sin(TILT)) / PERSP;
+    const cx = xl + W / 2, cy = yl + H / 2;
+    let best = null, bd = 1e9;
+    receivers.forEach(p => { const q = at(p, cur), d = Math.hypot(sx(q.y) - cx, sy(q.x) - cy); if (d < bd) { bd = d; best = p; } });
+    if (best && bd < 50) pick(best);
+  });
+
+  // ---------- 4. The reveal ----------
+  function showReveal() {
+    const target = players.find(p => p.nflId === S.target.nflId);
+    const userFoundIt = picked.p.nflId === S.mostOpen.nflId && S.target.nflId !== S.mostOpen.nflId;
+    const stamp = document.getElementById("stamp");
+    stamp.textContent = userFoundIt ? "The pro missed it" : "Same read as the pro";
+    stamp.className = "stamp" + (userFoundIt ? "" : " gold");
+    stamp.style.animation = "none"; void stamp.offsetWidth; stamp.style.animation = "";
+    document.getElementById("kicker").hidden = !userFoundIt;
+
+    document.getElementById("youNum").textContent = label(picked.p);
+    document.getElementById("youName").textContent = picked.p.name;
+    document.getElementById("youSp").textContent = `${picked.spotlight.toFixed(1)} yds of space`;
+    document.getElementById("proNum").textContent = target ? label(target) : S.target.name;
+    document.getElementById("proName").textContent = S.target.name;
+    document.getElementById("proSp").textContent = `${S.target.spotlight.toFixed(1)} yds · ${RESULT[S.passResult] || S.passResult}`;
+    document.getElementById("desc").textContent = S.description;
+    buildRibbons();
+    const r = document.getElementById("reveal");
+    r.hidden = false;
+    r.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Light ribbons: one per receiver, x = time since snap, thickness = spotlight
+  function buildRibbons() {
+    const svg = document.getElementById("ribbons");
+    const VW = 480, rowH = 50, left = 56, right = 470, top = 14; // small viewBox = readable text on phones
+    const VH = top + receivers.length * rowH + 30;
+    svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`);
+    const f0 = S.snapFrame, f1 = lastF;
+    const tx = f => left + (f - f0) / (f1 - f0) * (right - left);
+    let html = "";
+    receivers.forEach((p, i) => {
+      const cy = top + i * rowH + rowH / 2, isT = p.nflId === S.target.nflId;
+      const pts = [];
+      for (let f = f0; f <= f1; f++) { const q = p.byF[f]; if (q) pts.push([tx(f), Math.min(12, q.spotlight || 0) * 1.9 + 1]); }
+      const d = "M" + pts.map(([x, h]) => `${x.toFixed(1)},${(cy - h).toFixed(1)}`).join("L") +
+                "L" + pts.reverse().map(([x, h]) => `${x.toFixed(1)},${(cy + h).toFixed(1)}`).join("L") + "Z";
+      const isPick = p === picked.p;
+      html += `<path d="${d}" fill="${GOLD}" fill-opacity="${isPick || p.nflId === S.mostOpen.nflId ? .9 : .45}"
+               ${isT ? `stroke="${RED}" stroke-width="2"` : ""}/>`;
+      html += `<text class="lbl" x="0" y="${cy + (isT ? 0 : 5)}">#${p.jersey}</text>`;
+      if (isT) html += `<text x="0" y="${cy + 14}" style="fill:${RED};font-size:11px">QB target</text>`;
+    });
+    const xt = tx(S.throwFrame), secs = ((S.throwFrame - S.snapFrame) / 10).toFixed(1);
+    html += `<line x1="${xt}" x2="${xt}" y1="4" y2="${VH - 24}" stroke="${RED}" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+    html += `<text x="${left}" y="${VH - 6}">snap</text>`;
+    html += `<text x="${xt}" y="${VH - 6}" text-anchor="middle" style="fill:${RED}">throw · ${secs}s</text>`;
+    svg.innerHTML = html;
+  }
+
+  // ---------- buttons ----------
+  const startBtn = document.getElementById("start");
+  startBtn.onclick = () => {
+    startBtn.hidden = true;
+    cur = firstF;
+    play(freezeF, () => { cur = freezeF; showFreeze(); });
+  };
+  document.getElementById("again").onclick = () => {
+    if (playing) return;
+    cur = firstF;
+    document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" });
+    play(lastF, null); // replay the whole play without freezing
+  };
+
+  // ---------- 5. Insights: show a figure only if its image loads ----------
+  document.querySelectorAll("#insights img").forEach(img => {
+    const show = () => { img.parentElement.hidden = false; document.getElementById("insights").hidden = false; };
+    img.addEventListener("load", show);
+    img.addEventListener("error", () => { img.parentElement.hidden = true; });
+    if (img.complete && img.naturalWidth) show();
+  });
+
+  window.addEventListener("resize", resize);
+  resize();
+  // Redraw once the web fonts arrive so canvas labels use Inter
+  if (document.fonts) document.fonts.ready.then(() => draw(cur));
+})();
+</script>
+</body>
+</html>
