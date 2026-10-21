@@ -1,4 +1,4 @@
-![The Open Man: watch the play, find the light, see what the pro did](docs/demo.gif)
+![The Open Man: watch the play, find the light, see what the pro did](docs/the-open-man-demo-fast.gif)
 
 # The Open Man: see what the QB saw
 
