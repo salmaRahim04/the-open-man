@@ -32,11 +32,12 @@
   button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 
   /* ---------- 1. Header ---------- */
-  header.top { display: flex; align-items: center; gap: 12px; padding: 24px 0 8px; }
+  header.top { display: flex; align-items: center; gap: 12px; padding: 20px 0 4px; }
   .logo { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--gold); display: grid; place-items: center; }
   .logo::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); }
   .brand { font-family: var(--head); font-weight: 800; font-size: 22px; letter-spacing: .14em; }
-  .hero h1 { font-size: clamp(44px, 11vw, 84px); line-height: .92; margin-top: 20px; }
+  .hero h1 { font-size: clamp(44px, 11vw, 72px); line-height: .92; margin-top: 14px; }
+  @media (min-width: 700px) { .hero h1 br { display: none; } }
   .meta { color: var(--muted); margin: 12px 0 0; font-size: 15px; }
   .meta b { color: var(--text); font-weight: 600; }
 
@@ -48,8 +49,9 @@
   .clock text { font-family: var(--head); font-weight: 800; fill: var(--text); font-size: 20px; }
   .situation { position: absolute; top: 14px; left: 16px; font-size: 13px; color: var(--muted); }
   .situation .num { display: block; color: var(--text); font-size: 22px; }
-  .cta { width: 100%; margin-top: 14px; background: var(--gold); color: #1B1300; border: 0; border-radius: 16px;
-         padding: 18px 24px; font-weight: 700; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .cta { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(420px, calc(100% - 32px));
+         background: var(--gold); color: #1B1300; border: 0; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.45);
+         padding: 16px 22px; font-weight: 700; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
   .cta[hidden] { display: none; }
 
   /* ---------- Heartbeat line (pressure meter) ---------- */
@@ -124,7 +126,7 @@
   <!-- 1. Header -->
   <header class="top"><span class="logo" aria-hidden="true"></span><span class="brand">THE OPEN MAN</span></header>
   <section class="hero">
-    <h1>See what the<br>QB saw.</h1>
+    <h1>See what the <br>QB saw.</h1>
     <p class="meta" id="meta"></p>
   </section>
 
@@ -138,13 +140,13 @@
               stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
       <text id="clockTxt" x="32" y="39" text-anchor="middle">0.0s</text>
     </svg>
+    <button class="cta" id="start">Watch the snap <span aria-hidden="true">→</span></button>
   </section>
   <div class="pulse">
     <canvas id="pulse" aria-hidden="true"></canvas>
     <div class="bpm" aria-live="off"><span id="bpm">62</span><small>QB heart rate</small></div>
     <button class="sound" id="sound" aria-pressed="false">Sound off</button>
   </div>
-  <button class="cta" id="start">Watch the snap <span aria-hidden="true">→</span></button>
 
   <!-- 3. The freeze -->
   <section class="freeze" id="freeze" hidden>
@@ -166,8 +168,8 @@
     </div>
     <p class="desc" id="desc"></p>
     <div class="actions">
-      <button class="btn" id="again">Watch again</button>
-      <button class="btn primary" id="another" disabled title="Coming soon">Try another play</button>
+      <button class="btn primary" id="again">Watch again</button>
+      <button class="btn" id="another" disabled>Try another play · soon</button>
     </div>
   </section>
 
