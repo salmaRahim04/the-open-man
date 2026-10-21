@@ -16,8 +16,8 @@ For each one you get a freeze, a pick, and a reveal ("The pro missed it",
 versus where the light was. After the 5th play you get a **share card** with
 your QB vision score, which you can download as a PNG.
 
-**Try it:** open `web/openman.html` in Chrome (double-click works, no server),
-or the GitHub Pages link once it's published.
+**Play it live:** https://salmarahim04.github.io/the-open-man/
+(or open `web/openman.html` locally: double-click works, no server).
 
 ## The showcase play
 
