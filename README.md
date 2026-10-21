@@ -2,7 +2,9 @@
 
 # The Open Man: see what the QB saw
 
-### ▶ [Play it now](https://salmarahim04.github.io/the-open-man/) · no install, no sign-up, 2 minutes
+### ▶ [Play it now](https://salmarahim04.github.io/the-open-man/) · 🎬 [Watch the demo](https://salmarahim04.github.io/the-open-man/docs/the-open-man-demo-fast.gif)
+
+No install, no sign-up, 2 minutes.
 
 ---
 
@@ -38,6 +40,13 @@ Suddenly the read is obvious. You can *see* the open man.
 
 Five real interceptions. A running score. At the end, a **share card** with
 your QB vision score, ready to post.
+
+## The interface
+
+One screen tells the whole story: the field on the left, the decision on the
+right, then the light ribbons and the verdict.
+
+![The Open Man desktop interface](design/5-desktop.png)
 
 ## The play that sells it
 
